@@ -1,0 +1,16 @@
+node_modules/
+dist/
+release/
+test-results/
+.playwright/
+*.log
+.env
+.env.*
+*.pfx
+*.p12
+*.pem
+account.bin
+offline-profile.json
+launcher.json
+versions-cache.json
+.codex/

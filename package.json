@@ -1,0 +1,107 @@
+{
+  "name": "carrotclientlauncher",
+  "version": "0.4.0",
+  "private": true,
+  "description": "Dein Launcher. Deine Welten. Ein Minecraft Java Launcher für Windows.",
+  "author": "CarrotClient",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "node scripts/dev.cjs",
+    "build": "vite build",
+    "start": "electron .",
+    "test": "node --test tests/*.test.cjs",
+    "pack": "npm run build && electron-builder --win dir",
+    "dist": "npm run build && node scripts/package.cjs"
+  },
+  "dependencies": {
+    "@fontsource/inter": "^5.2.8",
+    "@fontsource/space-grotesk": "^5.2.10",
+    "adm-zip": "^0.6.1",
+    "electron-updater": "6.8.11",
+    "lucide-react": "^0.577.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@vitejs/plugin-react": "latest",
+    "electron": "^45.1.0",
+    "electron-builder": "^26.18.0",
+    "js-yaml": "4.3.2",
+    "vite": "^8.3.5"
+  },
+  "build": {
+    "appId": "de.carrotclient.launcher",
+    "productName": "CarrotClientLauncher",
+    "executableName": "carrotclientlauncher",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "assets/icon.ico",
+      "package.json"
+    ],
+    "asar": true,
+    "electronLanguages": [
+      "de",
+      "en-US"
+    ],
+    "win": {
+      "icon": "assets/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "signExecutable": false,
+      "verifyUpdateCodeSignature": false
+    },
+    "portable": {
+      "artifactName": "carrotclientlauncher.exe"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "juli22292",
+        "repo": "carrotclientlauncher",
+        "releaseType": "release"
+      }
+    ],
+    "nsis": {
+      "artifactName": "carrotclientlaunchersetup.exe",
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "CarrotClientLauncher",
+      "uninstallDisplayName": "CarrotClientLauncher",
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": true,
+      "include": "installer/custom.nsh"
+    },
+    "extraFiles": [
+      {
+        "from": "THIRD-PARTY-LICENSES.txt",
+        "to": "THIRD-PARTY-LICENSES.txt"
+      }
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/juli22292/carrotclientlauncher.git"
+  },
+  "homepage": "https://launcher.carrot.gay/startseite"
+}

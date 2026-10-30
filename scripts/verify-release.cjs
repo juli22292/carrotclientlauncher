@@ -1,0 +1,18 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const crypto = require('node:crypto');
+const assert = require('node:assert/strict');
+const yaml = require('js-yaml');
+const { version } = require('../package.json');
+const files = ['carrotclientlaunchersetup.exe', 'carrotclientlaunchersetup.exe.blockmap', 'carrotclientlauncher.exe', 'latest.yml'];
+for (const file of files) assert.ok(fs.statSync(path.join('release', file)).size > 0, file + ' is missing');
+const manifest = yaml.load(fs.readFileSync('release/latest.yml', 'utf8'));
+assert.equal(manifest.version, version);
+const installer = manifest.files.find(file => file.url === 'carrotclientlaunchersetup.exe');
+assert.ok(installer, 'Update manifest must reference the installer');
+const digest = crypto.createHash('sha512').update(fs.readFileSync('release/carrotclientlaunchersetup.exe')).digest('base64');
+assert.equal(installer.sha512, digest);
+assert.equal(installer.size, fs.statSync('release/carrotclientlaunchersetup.exe').size);
+const checksums = files.map(file => `${crypto.createHash('sha256').update(fs.readFileSync(path.join('release', file))).digest('hex')}  ${file}`).join('\n') + '\n';
+fs.writeFileSync('release/SHA256SUMS.txt', checksums);
+console.log(`Verified release ${version}, installer SHA-512 and all Windows artifacts.`);

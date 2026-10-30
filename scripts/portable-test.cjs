@@ -1,0 +1,62 @@
+const { chromium } = require('@playwright/test');
+const { spawn } = require('node:child_process');
+const path = require('node:path');
+const fs = require('node:fs/promises');
+const os = require('node:os');
+const net = require('node:net');
+const assert = require('node:assert/strict');
+async function main(){
+  const port = await new Promise(resolve=>{const s=net.createServer();s.listen(0,'127.0.0.1',()=>{const p=s.address().port;s.close(()=>resolve(p));});});
+  const root=await fs.mkdtemp(path.join(os.tmpdir(),'carrot-portable-'));
+  const exe=path.resolve('release/carrotclientlauncher.exe');
+  const child=spawn(exe,[`--remote-debugging-port=${port}`,'--remote-debugging-address=127.0.0.1'],{env:{...process.env,CARROT_DATA_DIR:root,CARROT_DISABLE_DISCORD:'1',CARROT_DISABLE_UPDATES:'1'},windowsHide:true,stdio:'ignore'});
+  let browser, page;
+  try {
+    const limit=Date.now()+60000;let ready=false;
+    while(Date.now()<limit){try{const r=await fetch(`http://127.0.0.1:${port}/json/version`);if(r.ok){ready=true;break;}}catch{} await new Promise(r=>setTimeout(r,500));}
+    if(!ready)throw new Error('Portable EXE did not expose the running renderer.');
+    browser=await chromium.connectOverCDP(`http://127.0.0.1:${port}`);
+    page=browser.contexts()[0].pages().find(p=>p.url().startsWith('carrot://')) || browser.contexts()[0].pages()[0];
+    await page.getByRole('heading',{name:'Schön, dass du da bist.'}).waitFor();
+    const data=await page.evaluate(()=>window.carrot.getData());
+    assert.equal(data.instances.length,0);assert.equal(data.appVersion,require('../package.json').version);
+    assert.equal(data.microsoftClientId,'2d4bee70-d128-4d81-9f2a-693b76ee6aab');
+    assert.equal(data.account,null);assert.equal('username' in data.settings,false);
+    assert.equal(/demo/i.test(await page.locator('body').innerText()),false);
+    assert.equal(/lokal|ganz bei dir/i.test(await page.locator('body').innerText()),false);
+    await page.waitForFunction(()=>document.querySelector('.statusbar').textContent.includes('Aktuell:'));
+    await page.evaluate(()=>document.fonts.ready);
+    await fs.mkdir('test-results',{recursive:true});
+    await page.screenshot({path:'test-results/portable.png'});
+    await page.getByRole('button',{name:'Neue Instanz',exact:true}).click();
+    await page.getByPlaceholder('Zum Beispiel: Meine Survival-Welt').pressSequentially('EXE-Test');
+    await page.getByRole('button',{name:'Instanz erstellen',exact:true}).click();
+    await page.getByRole('heading',{name:'EXE-Test',exact:true}).waitFor();
+    assert.equal(await page.locator('.instance-cover .instance-image').getAttribute('src'),'./instance-landscape.png');
+    assert.equal((await page.evaluate(()=>window.carrot.getData())).instances[0].name,'EXE-Test');
+    const blocked=await page.evaluate(async()=>{const d=await window.carrot.getData();try{await window.carrot.launch(d.instances[0].id);return false;}catch{return true;}});
+    assert.equal(blocked,true);assert.equal((await page.evaluate(()=>window.carrot.getData())).status.jobs.length,0);
+    await page.getByRole('button',{name:'EXE-Test starten'}).click();
+    await page.getByRole('dialog',{name:'Willkommen bei CarrotClient'}).waitFor();
+    await page.screenshot({path:'test-results/portable-account.png'});
+    await page.getByRole('tab',{name:'Cracked / Offline',exact:true}).click();
+    await page.getByRole('textbox',{name:'Offline-Spielername'}).fill('Steve');
+    await page.getByRole('button',{name:'Offline-Profil verwenden',exact:true}).click();
+    await page.waitForFunction(async()=>(await window.carrot.getData()).account?.type==='offline');
+    assert.deepEqual((await page.evaluate(()=>window.carrot.getData())).account,{type:'offline',name:'Steve',id:'5627dd98e6be3c21b8a8e92344183641'});
+    assert.deepEqual(JSON.parse(await fs.readFile(path.join(root,'offline-profile.json'),'utf8')),{name:'Steve',active:true});
+    await page.locator('.account-button').click();
+    await page.getByText('5627dd98-e6be-3c21-b8a8-e92344183641',{exact:true}).waitFor();
+    await page.screenshot({path:'test-results/portable-offline.png'});
+    await page.getByRole('dialog').getByRole('button',{name:'Schließen',exact:true}).first().click();
+    await page.getByRole('button',{name:'Einstellungen',exact:true}).click();
+    assert.equal(await page.getByRole('switch',{name:'Discord-Aktivität anzeigen'}).getAttribute('aria-checked'),'true');
+    await page.getByRole('switch',{name:'Discord-Aktivität anzeigen'}).click();
+    await page.getByRole('button',{name:'Änderungen speichern'}).click();
+    assert.equal((await page.evaluate(()=>window.carrot.getData())).settings.discordRichPresence,false);
+    await page.screenshot({path:'test-results/portable-settings.png'});
+    console.log('PASS: portable EXE '+data.appVersion+' loaded the river image, activated and saved an offline UUID, showed both login modes, and saved Discord settings; no fallback without an explicit profile.');
+    await page.evaluate(()=>window.carrot.windowAction('close')).catch(()=>{});
+  } finally {await page?.evaluate(()=>window.carrot.windowAction('close')).catch(()=>{});await browser?.close().catch(()=>{});child.kill();}
+}
+main().catch(e=>{console.error(e);process.exitCode=1;});
