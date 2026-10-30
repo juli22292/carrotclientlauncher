@@ -1,4 +1,4 @@
-# Minecraft-Anmeldung für CarrotClientLauncher 0.4.0
+# Minecraft-Anmeldung für CarrotClientLauncher 0.0.1
 
 ## Im Launcher bereits eingerichtet
 

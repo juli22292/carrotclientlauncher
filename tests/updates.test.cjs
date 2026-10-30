@@ -7,13 +7,13 @@ const { Updates, UPDATE_INTERVAL_MS, UPDATE_SOURCE } = require('../electron/upda
 class Client extends EventEmitter {
   checks = 0; downloads = 0; installations = [];
   setFeedURL(value) { this.feed = value; }
-  async checkForUpdates() { this.checks++; this.emit('checking-for-update'); this.emit('update-available', { version: '0.4.1' }); }
-  async downloadUpdate() { this.downloads++; this.emit('download-progress', { percent: 50, transferred: 500, total: 1000 }); this.emit('update-downloaded', { version: '0.4.1' }); return ['setup.exe']; }
+  async checkForUpdates() { this.checks++; this.emit('checking-for-update'); this.emit('update-available', { version: '0.0.2' }); }
+  async downloadUpdate() { this.downloads++; this.emit('download-progress', { percent: 50, transferred: 500, total: 1000 }); this.emit('update-downloaded', { version: '0.0.2' }); return ['setup.exe']; }
   quitAndInstall(...args) { this.installations.push(args); }
 }
 function fixture(t, options = {}) {
   const client = new Client(), events = [];
-  const service = new Updates({ client, version: '0.4.0', emit: (name, state) => events.push({ name, state }), ...options });
+  const service = new Updates({ client, version: '0.0.1', emit: (name, state) => events.push({ name, state }), ...options });
   t.after(() => service.stop()); return { client, service, events };
 }
 test('checks the public GitHub repository every minute and never downloads or installs automatically', async t => {
@@ -36,8 +36,8 @@ test('checking, downloading and installing are separate explicit actions', async
 });
 test('concurrent requests share the same check and download operations', async t => {
   const f = fixture(t);
-  f.client.checkForUpdates = async () => { f.client.checks++; f.client.emit('checking-for-update'); await delay(20); f.client.emit('update-available', {version:'0.4.1'}); };
-  f.client.downloadUpdate = async () => { f.client.downloads++; await delay(20); f.client.emit('update-downloaded', {version:'0.4.1'}); };
+  f.client.checkForUpdates = async () => { f.client.checks++; f.client.emit('checking-for-update'); await delay(20); f.client.emit('update-available', {version:'0.0.2'}); };
+  f.client.downloadUpdate = async () => { f.client.downloads++; await delay(20); f.client.emit('update-downloaded', {version:'0.0.2'}); };
   const check = f.service.check();
   await Promise.all([check, f.service.check(), f.service.download(), f.service.download()]);
   assert.equal(f.client.checks, 1); assert.equal(f.client.downloads, 1); assert.equal(f.service.state().status, 'downloaded');
@@ -54,7 +54,7 @@ test('network errors and failed downloads remain recoverable and never install a
   await f.service.check(); assert.equal(f.service.state().status, 'error');
   f.client.checkForUpdates = Client.prototype.checkForUpdates.bind(f.client); await f.service.check();
   f.client.downloadUpdate = async () => { throw new Error('bad sha512'); };
-  await f.service.download(); assert.equal(f.service.state().status, 'error'); assert.equal(f.service.state().version, '0.4.1');
+  await f.service.download(); assert.equal(f.service.state().status, 'error'); assert.equal(f.service.state().version, '0.0.2');
   f.client.downloadUpdate = Client.prototype.downloadUpdate.bind(f.client); await f.service.download();
   assert.equal(f.service.state().status, 'downloaded'); assert.equal(f.client.installations.length, 0);
 });
@@ -65,7 +65,7 @@ test('disabled development and UI tests do not contact GitHub or run an installe
 });
 test('no-update response displays the checked current version and installer launch failure can be retried', async t => {
   const f = fixture(t);
-  f.client.checkForUpdates = async () => f.client.emit('update-not-available', { version:'0.4.0' });
+  f.client.checkForUpdates = async () => f.client.emit('update-not-available', { version:'0.0.1' });
   await f.service.check(); assert.equal(f.service.state().status, 'current'); assert.equal(f.service.state().version, null);
   f.client.checkForUpdates = Client.prototype.checkForUpdates.bind(f.client); await f.service.check(); await f.service.download();
   f.client.quitAndInstall = () => { throw new Error('start failed'); };

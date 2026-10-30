@@ -122,7 +122,7 @@ async function main() {
     await app.evaluate(({BrowserWindow,ipcMain})=>{
       const win=BrowserWindow.getAllWindows()[0];win.setSize(1440,940);
       globalThis.carrotUpdateCalls=[];
-      let state={enabled:true,status:'available',currentVersion:'0.4.0',version:'0.4.1',progress:0,transferred:0,total:1000,lastChecked:Date.now(),error:''};
+      let state={enabled:true,status:'available',currentVersion:'0.0.1',version:'0.0.2',progress:0,transferred:0,total:1000,lastChecked:Date.now(),error:''};
       const send=()=>win.webContents.send('carrot:update',{...state});
       for(const method of ['downloadUpdate','installUpdate','checkForUpdates'])ipcMain.removeHandler('carrot:'+method);
       ipcMain.handle('carrot:downloadUpdate',async()=>{

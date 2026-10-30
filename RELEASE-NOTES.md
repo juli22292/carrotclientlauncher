@@ -1,3 +1,7 @@
+## CarrotClientLauncher 0.0.1
+
+Die erste Versionsnummer wurde auf **0.0.1** gesetzt. Der Funktionsumfang des bisherigen Stands bleibt erhalten.
+
 ## Windows-Installer und Launcher-Updates
 
 Mit `carrotclientlaunchersetup.exe` den Launcher installieren. Der Programmordner heißt standardmäßig `CarrotClientLauncherApp`; die Anwendung startet über `carrotclientlauncher.exe`.
@@ -11,3 +15,5 @@ Mit `carrotclientlaunchersetup.exe` den Launcher installieren. Der Programmordne
 Die Microsoft-Anmeldung bei Minecraft Services benötigt weiterhin die Freigabe der eigenen App-ID durch Mojang. Der vollständige Anmelde- und Spieltest mit einem lizenzierten Konto steht noch aus.
 
 Die portable `carrotclientlauncher.exe` liegt ebenfalls bei. Für die reguläre Installation und weitere Updates wird der Setup-Installer empfohlen.
+
+Die Versionsnummer wurde von 0.4.0 auf 0.0.1 zurückgesetzt. Bestehende 0.4.0-Installationen bitte einmal mit diesem Setup aktualisieren; der automatische Updater bietet absichtlich keine niedrigeren Versionsnummern an. Danach laufen weitere Updates wieder über den Launcher.
