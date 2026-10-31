@@ -21,18 +21,20 @@ async function request(url, signal) {
 async function json(url, signal) { return (await request(url, signal)).json(); }
 async function hashFile(file, algorithm) { const hash = crypto.createHash(algorithm); const { createReadStream } = require('node:fs'); for await (const chunk of createReadStream(file)) hash.update(chunk); return hash.digest('hex'); }
 async function download(item, file, signal, onBytes) {
-  const algorithm = item.sha256 ? 'sha256' : 'sha1', expected = item.sha256 || item.sha1;
-  try { const s = await fs.stat(file); if ((!item.size || s.size === item.size) && (!expected || await hashFile(file, algorithm) === expected)) return; } catch {}
+  const algorithm = item.sha512 ? 'sha512' : item.sha256 ? 'sha256' : 'sha1', expected = item.sha512 || item.sha256 || item.sha1;
+  try { const s = await fs.stat(file); if ((item.size == null || s.size === item.size) && (!expected || await hashFile(file, algorithm) === expected)) return; } catch {}
   await fs.mkdir(path.dirname(file), { recursive: true });
   for (let attempt = 0; attempt < 3; attempt++) {
     signal?.throwIfAborted();
     const temp = file + '.' + crypto.randomBytes(5).toString('hex') + '.part';
     try {
       const response = await request(item.url, signal);
+      if(item.maxSize && Number(response.headers.get('content-length'))>item.maxSize){await response.body?.cancel();throw new Error('Die Download-Datei ist zu groß.');}
       const stream = Readable.fromWeb(response.body);
-      stream.on('data', chunk => onBytes?.(chunk.length));
+      let received=0;
+      stream.on('data', chunk => { received+=chunk.length;if(item.maxSize&&received>item.maxSize)stream.destroy(new Error('Die Download-Datei ist zu groß.'));onBytes?.(chunk.length); });
       await pipeline(stream, createWriteStream(temp), { signal });
-      if (item.size && (await fs.stat(temp)).size !== item.size) throw new Error('Der Download ist unvollständig.');
+      if (item.size != null && (await fs.stat(temp)).size !== item.size) throw new Error('Der Download ist unvollständig.');
       if (expected && await hashFile(temp, algorithm) !== expected) throw new Error('Die Prüfsumme des Downloads stimmt nicht.');
       await fs.rename(temp, file); return;
     } catch (e) { await fs.rm(temp, { force: true }).catch(() => {}); if (signal?.aborted || attempt === 2) throw e; }

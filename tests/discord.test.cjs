@@ -177,11 +177,12 @@ test('spawn failure and an immediate game exit cannot leave a stale playing stat
     return child;
   } });
   await assert.rejects(engine.launch(i.id, account), /Java missing/);
-  assert.equal(engine.running.size, 0); assert.equal(statuses.length, 0);
+  assert.equal(engine.running.size, 0); assert.ok(statuses.every(running=>running.length===0));
+  statuses.length=0;
   fail = false;
   const originalSave = store.save.bind(store);
   store.save = async () => { await delay(30); return originalSave(); };
   await engine.launch(i.id, account);
-  await until(() => statuses.length >= 2);
-  assert.deepEqual(statuses[0], [i.id]); assert.deepEqual(statuses.at(-1), []); assert.equal(engine.running.size, 0);
+  await until(() => statuses.some(running=>running.includes(i.id)) && statuses.at(-1)?.length===0 && engine.running.size===0);
+  assert.deepEqual(statuses.find(running=>running.length), [i.id]); assert.deepEqual(statuses.at(-1), []); assert.equal(engine.running.size, 0);
 });

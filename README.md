@@ -1,6 +1,6 @@
 # CarrotClientLauncher
 
-Ein eigenständiger Minecraft-Java-Launcher für Windows 10/11 (64 Bit), mit deutscher Oberfläche, eigener Instanzbibliothek und Modrinth-Suche.
+Ein eigenständiger Minecraft-Java-Launcher für Windows 10/11 (64 Bit), mit deutscher Oberfläche, eigener Instanzbibliothek, Modrinth-Installation und Profilimport. Aktuelle Version: **0.0.2**.
 
 ## Öffnen
 
@@ -20,8 +20,21 @@ Auf der Startseite **Profil wählen** öffnen. Unter **Microsoft** die Anmeldung
 - Arbeitsspeicher, Startauflösung, Snapshot-Auswahl und Minimierung beim Spielen.
 - Discord Rich Presence: Hauptmenü im Launcher, Modloader und Minecraft-Version beim Spielen und ein Schalter zum Abschalten.
 - Updates über die öffentlichen GitHub Releases: automatische Prüfung alle 60 Sekunden, Download und Installation getrennt per Schaltfläche.
-- Live-Suche auf Modrinth nach Mods, Modpacks, Shadern und Ressourcenpaketen. Die Projektseiten öffnen im Standardbrowser. Der Import von Modpacks und die automatische Installation von Modrinth-Inhalten sind noch nicht enthalten.
+- Live-Suche und direkte Installation von Modrinth-Mods, Shadern und Ressourcenpaketen mit Versionsprüfung und erforderlichen Abhängigkeiten; Mod-Updates und Aktivieren/Deaktivieren.
+- `.mrpack`-Modpackimport über Dateiauswahl, Drag-and-drop oder die Modrinth-Suche, einschließlich passender Fabric-Version und Client-Overrides.
+- Profilimport für Modrinth, Laby, Lunar, NoRisk und Badlion über erkannte Formate bzw. Spielordner/Standardexporte. Formatgrenzen stehen in [IMPORT-FORMATS.md](IMPORT-FORMATS.md).
+- Eigene Instanzbilder und Symbole, Beschreibungen, Favoriten und zuletzt gespielte Instanz.
+- Automatische Backups vor Mod- und Versionsänderungen, manuelle Sicherungen und Wiederherstellung mit zusätzlichem Rettungsbackup.
+- Verständliche Absturzhinweise und bereinigter Diagnoseexport ohne automatischen Upload.
 - Eigene Spielordner, gespeicherte Spielzeit, Spielprotokolle und Archivieren von Instanzen mit Erhalt der Welten.
+
+## Profile, Mods und Sicherungen
+
+**Profile importieren** öffnet die Auswahl der Quell-Launcher. Ein gefundenes Profil auswählen und vor dem Kopieren Version, Loader und Einschränkungen prüfen. Für verschobene Installationen **Ordner auswählen** nutzen. Alternativ eine `.mrpack` auswählen oder ins Fenster ziehen. Die Quelle bleibt erhalten. Kopiert werden unterstützte Spieldaten, keine fremden Anmeldesitzungen oder Java-Startbefehle. Client-eigene Oberflächen und Cosmetics werden nicht konvertiert. Vanilla und Fabric ab Minecraft 1.16 werden gestartet; weitere Loader und ältere Versionen werden abgewiesen.
+
+Unter **Entdecken** ein Projekt öffnen, eine Zielinstanz wählen und **Installation prüfen** drücken. Erst **Jetzt installieren** übernimmt die angezeigten Dateien und erforderlichen Abhängigkeiten. Modpacks erhalten eine eigene neue Instanz. In der Instanzverwaltung findest du **Mods**, **Backups** und **Fehler & Logs** sowie eigene Bilder, Beschreibungen und den Versionswechsel.
+
+**Einstellungen → Sicherungen → Automatische Backups** ist standardmäßig aktiv. Die letzten fünf automatischen Sicherungen werden behalten; manuelle Sicherungen werden nicht automatisch entfernt. Sicherungen liegen im Launcher-Datenordner unter `backups`. Ein Backup auf demselben Laufwerk ersetzt keine separate Sicherung gegen Laufwerksausfall. Diagnoseprotokolle vor dem Weitergeben trotz Filterung auf weitere private Inhalte prüfen.
 
 ## Launcher-Updates
 

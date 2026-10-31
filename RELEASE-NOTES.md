@@ -1,19 +1,27 @@
-## CarrotClientLauncher 0.0.1
+## CarrotClientLauncher 0.0.2
 
-Die erste Versionsnummer wurde auf **0.0.1** gesetzt. Der Funktionsumfang des bisherigen Stands bleibt erhalten.
+Mods direkt installieren, vorhandene Welten mitnehmen und Änderungen mit Backups absichern.
 
-## Windows-Installer und Launcher-Updates
+- **Modrinth-Installation:** Mods, Ressourcenpakete und Shader direkt einer Instanz zuordnen. Minecraft-/Loader-Versionen und erforderliche Mod-Abhängigkeiten werden vorab geprüft. Mods aktivieren, deaktivieren und auf kompatible Updates prüfen.
+- **Modpacks:** `.mrpack` über die Dateiauswahl, per Drag-and-drop oder aus der Modrinth-Suche als neue Instanz importieren. Fabric-Versionen, Client-Overrides sowie optionale bzw. ausschließlich für Server bestimmte Dateien werden berücksichtigt.
+- **Profile importieren:** Auswahl für Modrinth, Laby Launcher, Lunar Client, NoRiskClient und Badlion Client. Automatische Suche und manuelle Ordnerauswahl mit Prüfung vor der Übernahme. Modrinth unterstützt die aktuelle SQLite-Struktur und ältere JSON-Profile; NoRisk unterstützt JSON und SQLite. Laby/Lunar verwenden erkannte Profile bzw. deren Spielordner oder `.mrpack`-Exporte. Badlion-Spieldaten werden kopiert und Client-Einstellungen als Referenz aufbewahrt.
+- **Backups:** Standardmäßig vor Mod-Änderungen und Versionswechseln sichern. Die letzten fünf automatischen Backups und alle manuellen Backups bleiben erhalten. Beim Wiederherstellen zuerst den aktuellen Stand sichern.
+- **Instanzen:** Eigene Bilder und Symbole, Beschreibungen, Favoriten und schneller Einstieg in die zuletzt gespielte Instanz. Minecraft-Version und Loader mit Bestätigung ändern.
+- **Fehlerhilfe:** Hinweise zu häufigen Java-, Mod-, Speicher- und Grafikfehlern. Protokolle vor dem Teilen ansehen und bereinigt als Textdatei exportieren; kein automatischer Upload.
+- **Startfortschritt:** Minecraft-Start als eigener Schritt zusätzlich zu den Download- und Java-Phasen.
 
-Mit `carrotclientlaunchersetup.exe` den Launcher installieren. Der Programmordner heißt standardmäßig `CarrotClientLauncherApp`; die Anwendung startet über `carrotclientlauncher.exe`.
+### Beim Import beachten
 
-- Automatische Update-Prüfung beim Start und danach alle 60 Sekunden über die öffentlichen GitHub Releases.
-- Download und Installation werden getrennt gestartet: Unter **Einstellungen → Launcher-Updates** zuerst **Update herunterladen**, danach **Update installieren**.
-- Heruntergeladene Updates werden beim normalen Schließen nicht automatisch installiert.
-- Minecraft und laufende Downloads vor einer Update-Installation beenden. Instanzen und Spielstände bleiben im bisherigen Datenordner erhalten.
-- Microsoft-Anmeldung und ausdrücklich auswählbare Offline-Profile, Vanilla und Fabric sowie Discord Rich Presence sind enthalten.
+Unterstützt werden **Vanilla und Fabric ab Minecraft Java 1.16**. Forge, NeoForge, Quilt und ältere Spielversionen werden ausdrücklich abgewiesen. Client-eigene HUDs, Cosmetics, Anmeldekonten, Java-Startbefehle und proprietäre Laufzeiten lassen sich nicht als gleichwertige Vanilla-/Fabric-Funktionen übernehmen. Nicht erkannte Spielversionen bzw. Loader müssen im Importdialog bestätigt werden. Die Originalordner werden nicht verändert.
 
-Die Microsoft-Anmeldung bei Minecraft Services benötigt weiterhin die Freigabe der eigenen App-ID durch Mojang. Der vollständige Anmelde- und Spieltest mit einem lizenzierten Konto steht noch aus.
+Formatvarianten, Quellen und Grenzen: [IMPORT-FORMATS.md](https://github.com/juli22292/carrotclientlauncher/blob/main/IMPORT-FORMATS.md). Eine universelle Kompatibilität mit jeder vergangenen oder künftigen Launcher-Version wird nicht zugesagt.
 
-Die portable `carrotclientlauncher.exe` liegt ebenfalls bei. Für die reguläre Installation und weitere Updates wird der Setup-Installer empfohlen.
+### Installation und Update
 
-Die Versionsnummer wurde von 0.4.0 auf 0.0.1 zurückgesetzt. Bestehende 0.4.0-Installationen bitte einmal mit diesem Setup aktualisieren; der automatische Updater bietet absichtlich keine niedrigeren Versionsnummern an. Danach laufen weitere Updates wieder über den Launcher.
+`carrotclientlaunchersetup.exe` installiert im Ordner **CarrotClientLauncherApp**. Die Anwendung heißt weiterhin `carrotclientlauncher.exe`. Eine portable EXE liegt ebenfalls bei.
+
+Bestehende 0.0.1-Installationen erhalten das Update über GitHub Releases. Im Launcher zuerst **Update herunterladen**, danach **Update installieren**. Beide Schritte bleiben getrennt. Bestehende Instanzen bleiben erhalten.
+
+Für Installationen aus der früheren 0.4.0-Versionsreihe ist eine einmalige manuelle Installation nötig, da ein automatisches Downgrade nicht angeboten wird.
+
+Die Freigabe der eigenen Microsoft-App-ID für Minecraft Services ist weiterhin ein externer Schritt. Der vollständige Spieltest mit einem lizenzierten Microsoft-Konto steht aus.

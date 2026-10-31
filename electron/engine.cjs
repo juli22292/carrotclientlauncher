@@ -46,7 +46,7 @@ function extractZip(file, root, excludes = []) {
   }
 }
 class Engine {
-  constructor(store, emit, { spawnProcess = spawn } = {}) { this.store = store; this.emit = emit; this.spawnProcess = spawnProcess; this.jobs = []; this.running = new Map(); this.busy = null; this.manifest = null; }
+  constructor(store, emit, { spawnProcess = spawn } = {}) { this.store = store; this.emit = emit; this.spawnProcess = spawnProcess; this.jobs = []; this.running = new Map(); this.starting=new Set();this.busy = null; this.manifest = null; }
   async versions() {
     if (!this.manifest) {
       try { this.manifest = await json(manifestUrl); await fs.writeFile(path.join(this.store.root, 'versions-cache.json'), JSON.stringify(this.manifest)); }
@@ -79,8 +79,9 @@ class Engine {
       let profile = base;
       if (instance.loader === 'fabric') {
         const loaders = await json(`https://meta.fabricmc.net/v2/versions/loader/${encodeURIComponent(instance.version)}`, signal);
-        const loader = loaders.find(l => l.loader.stable) || loaders[0];
+        const loader = instance.loaderVersion ? loaders.find(l => l.loader.version === instance.loaderVersion) : loaders.find(l => l.loader.stable) || loaders[0];
         if (!loader) throw new Error('Für diese Minecraft-Version ist Fabric noch nicht verfügbar.');
+        instance.loaderVersion=loader.loader.version;
         const fabric = await json(`https://meta.fabricmc.net/v2/versions/loader/${encodeURIComponent(instance.version)}/${loader.loader.version}/profile/json`, signal);
         profile = { ...base, id: fabric.id, mainClass: fabric.mainClass, libraries: [...fabric.libraries, ...base.libraries], arguments: { game: [...base.arguments.game, ...(fabric.arguments?.game || [])], jvm: [...base.arguments.jvm, ...(fabric.arguments?.jvm || [])] } };
       }
@@ -144,7 +145,10 @@ class Engine {
   }
   async launch(id, account) {
     account = requireSession(account);
-    if (this.running.has(id)) throw new Error('Diese Instanz läuft bereits.');
+    if(this.busy)throw new Error('Bitte warte, bis der aktuelle Vorgang abgeschlossen ist.');
+    if (this.running.has(id)||this.starting.has(id)) throw new Error('Diese Instanz läuft bereits oder wird gestartet.');
+    this.starting.add(id);
+    try {
     const instance = this.store.instance(id);
     if (!instance.installed) await this.install(id);
     const game = this.store.directory(id), settings = this.store.data.settings;
@@ -159,15 +163,19 @@ class Engine {
     };
     const features = { has_custom_resolution: true };
     const args = [`-Xmx${settings.memory}M`, '-Xms512M', ...argsFrom(profile.arguments.jvm, variables, features), profile.mainClass, ...argsFrom(profile.arguments.game, variables, features)];
+    const launchJob={id:crypto.randomUUID(),instanceId:id,name:instance.name,state:'running',stage:'Minecraft startet',progress:95,bytes:0,started:Date.now()};this.jobs.unshift(launchJob);this.jobs=this.jobs.slice(0,30);this.change(launchJob,{});
     const log = require('node:fs').createWriteStream(path.join(game, 'launcher-game.log'));
     const child = this.spawnProcess(java, args, { cwd: game, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
-    await new Promise((resolve, reject) => { child.once('spawn', resolve); child.once('error', reject); }).catch(e => { log.end(); throw new Error('Minecraft konnte nicht gestartet werden: ' + e.message); });
+    await new Promise((resolve, reject) => { child.once('spawn', resolve); child.once('error', reject); }).catch(e => { log.end();this.change(launchJob,{state:'error',stage:'Minecraft konnte nicht gestartet werden',finished:Date.now()});throw new Error('Minecraft konnte nicht gestartet werden: ' + e.message); });
     const redact = chunk => { let text = chunk.toString(); if (account.type !== 'offline' && account.accessToken) text = text.replaceAll(account.accessToken, '[redacted]'); log.write(text); };
     child.stdout.on('data', redact); child.stderr.on('data', redact);
     const start = Date.now(); this.running.set(id, child); instance.lastPlayed = start;
-    child.once('exit', async code => { log.end(); this.running.delete(id); instance.playtime += Math.round((Date.now() - start) / 1000); await this.store.save(); this.emit('status', this.status()); this.emit('data'); if (code) this.emit('game-error', { id, message: `Minecraft wurde mit Fehlercode ${code} beendet. Das Spielprotokoll liegt im Instanzordner.` }); });
+    let outputTail='';child.stdout.on('data',chunk=>{outputTail=(outputTail+chunk.toString()).slice(-32000);});child.stderr.on('data',chunk=>{outputTail=(outputTail+chunk.toString()).slice(-32000);});
+    child.once('exit', async code => { log.end(); this.running.delete(id); instance.lastExitCode=code;instance.playtime += Math.round((Date.now() - start) / 1000); await this.store.save(); this.emit('status', this.status()); this.emit('data'); if (code) {const diagnosis=require('./diagnostics.cjs').explain(outputTail,code);this.emit('game-error', { id, message:diagnosis.title+'. '+diagnosis.help });} });
+    this.change(launchJob,{state:'complete',progress:100,stage:'Minecraft läuft',finished:Date.now()});
     this.emit('status', this.status()); await this.store.save(); this.emit('data');
     return { launched: true };
+    }finally{this.starting.delete(id);}
   }
 }
 module.exports = { Engine, allowed, argsFrom, maven, javaVersion };
