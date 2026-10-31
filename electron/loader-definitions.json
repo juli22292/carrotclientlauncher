@@ -1,0 +1,7 @@
+[
+  { "id": "vanilla", "name": "Vanilla", "description": "Das Original. Einfach Minecraft." },
+  { "id": "fabric", "name": "Fabric", "description": "Leichtgewichtig und vielseitig." },
+  { "id": "forge", "name": "Forge", "description": "Für klassische Mods und große Modpacks." },
+  { "id": "neoforge", "name": "NeoForge", "description": "Für moderne Mods und Modpacks." },
+  { "id": "quilt", "name": "Quilt", "description": "Der Loader für Quilt-Mods." }
+]

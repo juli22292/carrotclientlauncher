@@ -57,7 +57,12 @@ else {
     bind('getData', () => ({ ...store.data, account: auth.public(), microsoftAccount: auth.microsoftPublic(), offlineProfile: auth.offlinePublic(), authState: auth.state(), microsoftClientId: MICROSOFT_CLIENT_ID, root: store.root, totalMemory: Math.floor(os.totalmem() / 1024 / 1024), status: engine.status(), appVersion: app.getVersion(), update: updates.state() }));
     bind('checkForUpdates', () => updates.check()); bind('downloadUpdate', () => updates.download()); bind('installUpdate', () => updates.install());
     bind('getVersions', () => engine.versions());
-    bind('createInstance', async value => { await engine.versions(); if (!engine.manifest.versions.some(v => v.id === value.version)) throw new Error('Unbekannte Minecraft-Version.'); const result = await store.create(value); emit('data'); return result; });
+    bind('getLoaderVersions',async(loader,version)=>(await engine.loaders.versions(loader,version)).map(({version,stable})=>({version,stable})));
+    bind('createInstance', async value => {
+      await engine.versions(); if (!engine.manifest.versions.some(v => v.id === value.version)) throw new Error('Unbekannte Minecraft-Version.');
+      if(value.loader!=='vanilla'){const available=await engine.loaders.versions(value.loader,value.version);const selected=value.loaderVersion?available.find(v=>v.version===value.loaderVersion):available[0];if(!selected)throw new Error('Für diese Kombination ist keine passende Loader-Version verfügbar.');value={...value,loaderVersion:selected.version};}
+      const result = await store.create(value); emit('data'); return result;
+    });
     bind('updateInstance', async (id, value) => { const result = await store.update(id, value); emit('data'); return result; });
     bind('changeInstanceVersion',(id,value)=>content.changeVersion(id,value));
     bind('chooseInstanceImage',async(id,kind)=>{if(!['cover','icon'].includes(kind))throw new Error('Unbekannter Bildtyp.');store.instance(id);const result=await dialog.showOpenDialog(window,{title:kind==='icon'?'Instanzsymbol auswählen':'Instanzbild auswählen',filters:[{name:'Bilder',extensions:['png','jpg','jpeg','webp']}],properties:['openFile']});if(result.canceled)return null;const file=result.filePaths[0];if((await require('node:fs/promises').stat(file)).size>10*1024*1024)throw new Error('Bitte ein Bild unter 10 MB verwenden.');const image=nativeImage.createFromPath(file);if(image.isEmpty())throw new Error('Das Bild konnte nicht gelesen werden.');const resized=image.resize({width:kind==='icon'?128:1024});const value=kind==='icon'?resized.toDataURL():'data:image/jpeg;base64,'+resized.toJPEG(85).toString('base64');await store.update(id,{[kind]:value});emit('data');return value;});
@@ -87,9 +92,11 @@ else {
     bind('saveSettings', async value => { const result = await store.settings(value); updatePresence(); emit('data'); return result; });
     bind('chooseJava', async () => { const result = await dialog.showOpenDialog(window, { title: 'Java auswählen', filters: [{ name: 'Java', extensions: ['exe'] }], properties: ['openFile'] }); return result.canceled ? null : result.filePaths[0]; });
     bind('openFolder', async id => { const result = await shell.openPath(id ? store.directory(id) : store.root); if (result) throw new Error(result); });
-    bind('searchProjects', async ({ query = '', type = 'mod', offset = 0 } = {}) => {
+    bind('searchProjects', async ({ query = '', type = 'mod', offset = 0, instanceId = '' } = {}) => {
       if (!['mod', 'modpack', 'shader', 'resourcepack'].includes(type) || typeof query !== 'string' || query.length > 200) throw new Error('Ungültige Suche.');
-      const params = new URLSearchParams({ query, facets: JSON.stringify([[`project_type:${type}`]]), index: 'downloads', limit: '12', offset: String(Math.max(0, Math.min(1000, Number(offset) || 0))) });
+      const facets=[[`project_type:${type}`]];
+      if(instanceId){const instance=store.instance(instanceId);facets.push([`versions:${instance.version}`]);if(type==='mod'||type==='modpack')facets.push([`categories:${instance.loader}`]);}
+      const params = new URLSearchParams({ query, facets: JSON.stringify(facets), index: 'downloads', limit: '12', offset: String(Math.max(0, Math.min(1000, Number(offset) || 0))) });
       return json('https://api.modrinth.com/v2/search?' + params);
     });
     bind('openExternal', async value => { const url = new URL(value); if (url.protocol !== 'https:' || !['modrinth.com', 'www.minecraft.net', 'learn.microsoft.com', 'portal.azure.com', 'microsoft.com', 'www.microsoft.com', 'login.microsoftonline.com'].includes(url.hostname)) throw new Error('Dieser Link ist nicht freigegeben.'); await shell.openExternal(url.href); });

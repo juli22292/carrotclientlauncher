@@ -8,6 +8,7 @@ const AdmZip = require('adm-zip');
 const { json, download, pool, safeChild } = require('./network.cjs');
 const { requireSession } = require('./auth.cjs');
 const { MICROSOFT_CLIENT_ID } = require('./config.cjs');
+const { Loaders } = require('./loaders.cjs');
 const exec = promisify(execFile);
 const manifestUrl = 'https://piston-meta.mojang.com/mc/game/version_manifest_v2.json';
 
@@ -30,8 +31,9 @@ function argsFrom(items, variables, features) {
 }
 function maven(lib) {
   if (lib.downloads?.artifact) return lib.downloads.artifact;
-  const [group, name, version, classifier] = lib.name.split(':');
-  const relative = `${group.replaceAll('.', '/')}/${name}/${version}/${name}-${version}${classifier ? '-' + classifier : ''}.jar`;
+  const [coordinate,extension='jar'] = lib.name.split('@');
+  const [group, name, version, classifier] = coordinate.split(':');
+  const relative = `${group.replaceAll('.', '/')}/${name}/${version}/${name}-${version}${classifier ? '-' + classifier : ''}.${extension}`;
   return { path: relative, url: (lib.url || 'https://libraries.minecraft.net/') + relative };
 }
 async function javaVersion(file) {
@@ -46,7 +48,7 @@ function extractZip(file, root, excludes = []) {
   }
 }
 class Engine {
-  constructor(store, emit, { spawnProcess = spawn } = {}) { this.store = store; this.emit = emit; this.spawnProcess = spawnProcess; this.jobs = []; this.running = new Map(); this.starting=new Set();this.busy = null; this.manifest = null; }
+  constructor(store, emit, { spawnProcess = spawn } = {}) { this.store = store; this.emit = emit; this.spawnProcess = spawnProcess; this.jobs = []; this.running = new Map(); this.starting=new Set();this.busy = null; this.manifest = null;this.loaders=new Loaders(store.root); }
   async versions() {
     if (!this.manifest) {
       try { this.manifest = await json(manifestUrl); await fs.writeFile(path.join(this.store.root, 'versions-cache.json'), JSON.stringify(this.manifest)); }
@@ -76,20 +78,14 @@ class Engine {
       await fs.mkdir(versionDir, { recursive: true });
       await download(base.downloads.client, path.join(versionDir, instance.version + '.jar'), signal, onBytes);
       this.change(job, { progress: 8, stage: 'Bibliotheken werden geladen' });
-      let profile = base;
-      if (instance.loader === 'fabric') {
-        const loaders = await json(`https://meta.fabricmc.net/v2/versions/loader/${encodeURIComponent(instance.version)}`, signal);
-        const loader = instance.loaderVersion ? loaders.find(l => l.loader.version === instance.loaderVersion) : loaders.find(l => l.loader.stable) || loaders[0];
-        if (!loader) throw new Error('Für diese Minecraft-Version ist Fabric noch nicht verfügbar.');
-        instance.loaderVersion=loader.loader.version;
-        const fabric = await json(`https://meta.fabricmc.net/v2/versions/loader/${encodeURIComponent(instance.version)}/${loader.loader.version}/profile/json`, signal);
-        profile = { ...base, id: fabric.id, mainClass: fabric.mainClass, libraries: [...fabric.libraries, ...base.libraries], arguments: { game: [...base.arguments.game, ...(fabric.arguments?.game || [])], jvm: [...base.arguments.jvm, ...(fabric.arguments?.jvm || [])] } };
-      }
+      const prepared=await this.loaders.prepare(instance,base,{signal,onBytes,ensureJava:(...args)=>this.ensureJava(...args),stage:stage=>this.change(job,{stage,progress:8})});
+      const profile=prepared.profile;
       const libraries = profile.libraries.filter(l => allowed(l.rules));
       const tasks = [];
       for (const lib of libraries) {
         const artifact = maven(lib);
         if (artifact?.url) tasks.push({ ...artifact, destination: safeChild(path.join(root, 'libraries'), artifact.path) });
+        else if(artifact?.path)await fs.access(safeChild(path.join(root,'libraries'),artifact.path)).catch(()=>{throw new Error('Eine vom Loader erzeugte Bibliothek fehlt. Bitte die Installation erneut versuchen.');});
         const classifier = lib.natives?.windows?.replace('${arch}', '64');
         const native = lib.downloads?.classifiers?.[classifier];
         if (native) tasks.push({ ...native, destination: safeChild(path.join(root, 'libraries'), native.path), native: true, excludes: lib.extract?.exclude || [] });
@@ -115,7 +111,7 @@ class Engine {
       const java = await this.ensureJava(base.javaVersion?.majorVersion || 8, signal, onBytes);
       for (const folder of ['mods', 'resourcepacks', 'shaderpacks', 'saves']) await fs.mkdir(path.join(game, folder), { recursive: true });
       await fs.writeFile(path.join(game, 'profile.json'), JSON.stringify({ profile, java, baseVersion: instance.version }));
-      instance.installed = true; await this.store.save();
+      instance.loaderVersion=prepared.loaderVersion;instance.installed = true; await this.store.save();
       this.change(job, { state: 'complete', progress: 100, stage: 'Bereit zum Spielen', finished: Date.now() });
       return true;
     } catch (e) { this.change(job, { state: signal.aborted ? 'cancelled' : 'error', stage: signal.aborted ? 'Abgebrochen' : e.message, finished: Date.now() }); throw e; }
@@ -153,7 +149,7 @@ class Engine {
     if (!instance.installed) await this.install(id);
     const game = this.store.directory(id), settings = this.store.data.settings;
     const { profile, java, baseVersion } = JSON.parse(await fs.readFile(path.join(game, 'profile.json'), 'utf8'));
-    const libraries = profile.libraries.filter(l => allowed(l.rules)).map(l => maven(l)).filter(a => a?.url).map(a => safeChild(path.join(this.store.root, 'libraries'), a.path));
+    const libraries = profile.libraries.filter(l => allowed(l.rules)).map(l => maven(l)).filter(a => a?.path).map(a => safeChild(path.join(this.store.root, 'libraries'), a.path));
     const variables = {
       auth_player_name: account.name, auth_uuid: account.id, auth_access_token: account.accessToken,
       clientid: MICROSOFT_CLIENT_ID, auth_xuid: account.xuid || '', user_type: account.type === 'offline' ? 'legacy' : 'msa', user_properties: '{}', version_name: profile.id,
@@ -162,7 +158,10 @@ class Engine {
       classpath: [...libraries, path.join(this.store.root, 'versions', baseVersion, baseVersion + '.jar')].join(path.delimiter), library_directory: path.join(this.store.root, 'libraries'), classpath_separator: path.delimiter
     };
     const features = { has_custom_resolution: true };
-    const args = [`-Xmx${settings.memory}M`, '-Xms512M', ...argsFrom(profile.arguments.jvm, variables, features), profile.mainClass, ...argsFrom(profile.arguments.game, variables, features)];
+    // Forge-family launchers exclude the original game jar from their module scan.
+    // Our inherited jar retains the base version's filename, rather than the loader profile's name.
+    const jvm=argsFrom(profile.arguments.jvm,variables,features).map(arg=>arg.startsWith('-DignoreList=')?arg+','+baseVersion+'.jar':arg);
+    const args = [`-Xmx${settings.memory}M`, '-Xms512M', ...jvm, profile.mainClass, ...argsFrom(profile.arguments.game, variables, features)];
     const launchJob={id:crypto.randomUUID(),instanceId:id,name:instance.name,state:'running',stage:'Minecraft startet',progress:95,bytes:0,started:Date.now()};this.jobs.unshift(launchJob);this.jobs=this.jobs.slice(0,30);this.change(launchJob,{});
     const log = require('node:fs').createWriteStream(path.join(game, 'launcher-game.log'));
     const child = this.spawnProcess(java, args, { cwd: game, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });

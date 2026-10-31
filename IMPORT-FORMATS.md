@@ -1,4 +1,4 @@
-# Profilimport in 0.0.2
+# Profilimport in 0.0.3
 
 Formatrecherche: 31. Oktober 2026. Die Adapter sind eigenständig implementiert; fremder Launcher-Code wird nicht eingebunden.
 
@@ -14,11 +14,11 @@ Formatrecherche: 31. Oktober 2026. Die Adapter sind eigenständig implementiert;
 
 Alle Wege erstellen eine **neue Instanz**. Quellen werden nicht geändert. Übernommen werden erkannte Spielinhalte wie `saves`, `mods`, `config`, `resourcepacks`, `shaderpacks`, Screenshots und Minecraft-Optionen. Authentifizierungsdateien, fremde Java-Argumente, Konten, Runtime-Installer und Launcher-Bibliotheken gehören nicht dazu. Symbolische Verknüpfungen werden mit einer Meldung abgewiesen, statt außerhalb des Spielordners zu folgen.
 
-Carrot startet **Vanilla und Fabric ab 1.16**. Ein nicht unterstützter Loader wird nicht stillschweigend durch Vanilla ersetzt. Für proprietäre Client-Funktionen wird keine gleichwertige Konvertierung versprochen. Welten aus neueren Minecraft-Versionen dürfen nicht ohne geeignete Sicherung in älteren Versionen geöffnet werden.
+Carrot startet **Vanilla, Fabric, Forge, NeoForge und Quilt ab 1.16**, soweit die gewählte Spielversion vom jeweiligen Loader unterstützt wird. Ein nicht unterstützter Loader wird nicht stillschweigend durch Vanilla ersetzt. Für proprietäre Client-Funktionen wird keine gleichwertige Konvertierung versprochen. Welten aus neueren Minecraft-Versionen dürfen nicht ohne geeignete Sicherung in älteren Versionen geöffnet werden.
 
 ## Modrinth-Modpacks
 
-Unterstützt wird Formatversion 1 mit `modrinth.index.json`. Der Import prüft Pfade, Dateigrößen, zulässige HTTPS-Quellen und SHA-1/SHA-512-Prüfsummen. `overrides` wird vor `client-overrides` angewendet; `server-overrides` und clientseitig nicht unterstützte Dateien werden ausgelassen. Optionale Client-Dateien werden nur auf Wunsch installiert. Die Fabric-Version aus `dependencies.fabric-loader` wird beibehalten.
+Unterstützt wird Formatversion 1 mit `modrinth.index.json`. Der Import prüft Pfade, Dateigrößen, zulässige HTTPS-Quellen und SHA-1/SHA-512-Prüfsummen. `overrides` wird vor `client-overrides` angewendet; `server-overrides` und clientseitig nicht unterstützte Dateien werden ausgelassen. Optionale Client-Dateien werden nur auf Wunsch installiert. Die Loader-Version aus `dependencies.fabric-loader`, `forge`, `neoforge` oder `quilt-loader` wird beibehalten. Pakete mit mehreren gleichzeitig deklarierten Loadern werden abgewiesen.
 
 Es gelten 1 GB für das Archiv, 2 GB entpackt und 256 MB pro Eintrag. Download-Hosts stehen in `electron/network.cjs`. Pakete mit anderen Quellen werden mit einer Meldung abgewiesen. Die Vorbereitung erfolgt im Arbeitsverzeichnis; eine Instanz erscheint erst nach abgeschlossener Übernahme.
 

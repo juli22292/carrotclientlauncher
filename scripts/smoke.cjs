@@ -77,8 +77,8 @@ async function main() {
     await page.getByRole('button',{name:'Karottenwelt verwalten'}).click();
     await page.getByRole('textbox',{name:'Name der Instanz'}).fill('Meine Karottenwelt');
     await page.getByRole('button',{name:'Speichern',exact:true}).click();
-    await page.getByRole('heading',{name:'Meine Karottenwelt',exact:true}).last().waitFor();
-    await page.getByRole('button',{name:'Schließen',exact:true}).click();
+    await page.getByRole('heading',{name:/^Meine Karottenwelt\.?$/}).last().waitFor();
+    await page.getByRole('button',{name:'Zurück zur Bibliothek',exact:true}).click();
     await page.getByRole('button',{name:'Einstellungen',exact:true}).click();
     await page.getByRole('switch',{name:'Launcher beim Spielen minimieren'}).click();
     assert.equal(await page.getByRole('switch',{name:'Discord-Aktivität anzeigen'}).getAttribute('aria-checked'),'true');
@@ -102,7 +102,7 @@ async function main() {
     await page.getByRole('button',{name:'Bibliothek',exact:false}).first().click();
     await page.getByRole('button',{name:'Meine Karottenwelt verwalten'}).click();
     await page.getByRole('button',{name:'Archivieren',exact:true}).click();
-    await page.getByRole('button',{name:'Archivieren',exact:true}).click();
+    await page.getByRole('dialog',{name:'Instanz archivieren?'}).getByRole('button',{name:'Archivieren',exact:true}).click();
     await page.getByRole('heading',{name:'Hier ist Platz für deine Welten.'}).waitFor();
     assert.equal((await page.evaluate(() => window.carrot.getData())).instances.length,0);
     await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].setSize(1080,720));

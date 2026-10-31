@@ -28,7 +28,7 @@ class DiscordPresence {
   update(instance) {
     this.activity = {
       name: 'CarrotClientLauncher', type: 0,
-      details: instance ? `Spielt ${instance.loader === 'fabric' ? 'Fabric' : 'Vanilla'} ${instance.version}` : 'Aktiv im Hauptmenü',
+      details: instance ? `Spielt ${require('./loader-definitions.json').find(loader=>loader.id===instance.loader)?.name||instance.loader||'Vanilla'} ${instance.version}` : 'Aktiv im Hauptmenü',
       assets: { large_image: this.image, large_text: 'CarrotClientLauncher' }
     };
     this.flush();

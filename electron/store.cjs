@@ -2,6 +2,7 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const os = require('node:os');
+const loaderIds = require('./loader-definitions.json').map(loader=>loader.id);
 
 const defaults = {
   memory: Math.max(1024, Math.min(4096, Math.floor(os.totalmem() / 1024 / 1024 / 2 / 512) * 512)),
@@ -37,7 +38,7 @@ class Store {
   async create({ name, version, loader, color, loaderVersion = '', description = '' }, { preparedDirectory } = {}) {
     if (typeof name !== 'string' || !name.trim() || name.trim().length > 40) throw new Error('Bitte gib einen Namen mit 1 bis 40 Zeichen ein.');
     if (typeof version !== 'string' || !/^[a-zA-Z0-9_.-]{1,80}$/.test(version)) throw new Error('Ungültige Minecraft-Version.');
-    if (!['vanilla', 'fabric'].includes(loader)) throw new Error('Unbekannter Modloader.');
+    if (!loaderIds.includes(loader)) throw new Error('Unbekannter Modloader.');
     const i = { id: crypto.randomUUID(), name: name.trim(), version, loader, color: ['moss', 'clay', 'lake', 'plum'].includes(color) ? color : 'moss', createdAt: Date.now(), lastPlayed: null, playtime: 0, installed: false };
     i.loaderVersion = /^[\w.+-]{0,80}$/.test(loaderVersion) ? loaderVersion : '';
     i.description = String(description).slice(0,300); i.favorite = false;

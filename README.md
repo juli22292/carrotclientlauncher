@@ -1,6 +1,6 @@
 # CarrotClientLauncher
 
-Ein eigenständiger Minecraft-Java-Launcher für Windows 10/11 (64 Bit), mit deutscher Oberfläche, eigener Instanzbibliothek, Modrinth-Installation und Profilimport. Aktuelle Version: **0.0.2**.
+Ein eigenständiger Minecraft-Java-Launcher für Windows 10/11 (64 Bit), mit deutscher Oberfläche, eigener Instanzbibliothek, Modrinth-Installation und Profilimport. Aktuelle Version: **0.0.3**.
 
 ## Öffnen
 
@@ -8,12 +8,12 @@ Ein eigenständiger Minecraft-Java-Launcher für Windows 10/11 (64 Bit), mit deu
 
 Zusätzlich liegt `release/carrotclientlauncher.exe` als portable Variante bei. Bestehende Instanzen und Profile bleiben im bisherigen Datenordner erhalten.
 
-Auf der Startseite **Profil wählen** öffnen. Unter **Microsoft** die Anmeldung auf Microsofts Webseite abschließen oder unter **Cracked / Offline** einen Spielernamen wählen und **Offline-Profil verwenden** drücken. Anschließend **Neue Instanz** wählen, einen Namen, eine Minecraft-Version und Vanilla oder Fabric auswählen. Mit dem Play-Button werden Minecraft und bei Bedarf die passende Java-Laufzeit geladen. Eine Internetverbindung ist dafür nötig. Heruntergeladene Spieldateien und Java werden zwischen Instanzen wiederverwendet.
+Auf der Startseite **Profil wählen** öffnen. Unter **Microsoft** die Anmeldung auf Microsofts Webseite abschließen oder unter **Cracked / Offline** einen Spielernamen wählen und **Offline-Profil verwenden** drücken. Anschließend **Neue Instanz** wählen, einen Namen, eine Minecraft-Version und Vanilla, Fabric, Forge, NeoForge oder Quilt auswählen. Mit dem Play-Button werden Minecraft und bei Bedarf die passende Java-Laufzeit geladen. Eine Internetverbindung ist dafür nötig. Heruntergeladene Spieldateien und Java werden zwischen Instanzen wiederverwendet.
 
 ## Enthalten
 
-- Eigene Instanzen mit Namen, vier Farben, Vanilla oder Fabric; Versionen ab Minecraft 1.16.
-- Installation aus den offiziellen Minecraft- und Fabric-Metadaten, parallele Downloads, Prüfsummen, Wiederverwendung bereits geprüfter Dateien und Abbrechen von Downloads.
+- Eigene Instanzen mit Namen, vier Farben, Vanilla, Fabric, Forge, NeoForge oder Quilt; Versionen ab Minecraft 1.16.
+- Installation aus den offiziellen Minecraft- und Loader-Metadaten, parallele Downloads, Prüfsummen, Wiederverwendung bereits geprüfter Dateien und Abbrechen von Downloads.
 - Automatische, versionsgerechte Java-Laufzeit über Eclipse Temurin oder manuelle Auswahl von `java.exe`.
 - Microsoft-Anmeldung mit Lizenz- und Profilprüfung, automatisch erneuerter Sitzung und Abmeldung; alternativ ein ausdrücklich gewähltes Offline-Profil mit Spielernamen und passender Offline-UUID.
 - Das bereitgestellte Flussbild als Standardbild für Instanzen, Seitenleiste und Instanzdialoge.
@@ -21,7 +21,7 @@ Auf der Startseite **Profil wählen** öffnen. Unter **Microsoft** die Anmeldung
 - Discord Rich Presence: Hauptmenü im Launcher, Modloader und Minecraft-Version beim Spielen und ein Schalter zum Abschalten.
 - Updates über die öffentlichen GitHub Releases: automatische Prüfung alle 60 Sekunden, Download und Installation getrennt per Schaltfläche.
 - Live-Suche und direkte Installation von Modrinth-Mods, Shadern und Ressourcenpaketen mit Versionsprüfung und erforderlichen Abhängigkeiten; Mod-Updates und Aktivieren/Deaktivieren.
-- `.mrpack`-Modpackimport über Dateiauswahl, Drag-and-drop oder die Modrinth-Suche, einschließlich passender Fabric-Version und Client-Overrides.
+- `.mrpack`-Modpackimport über Dateiauswahl, Drag-and-drop oder die Modrinth-Suche, einschließlich passender Loader-Version und Client-Overrides.
 - Profilimport für Modrinth, Laby, Lunar, NoRisk und Badlion über erkannte Formate bzw. Spielordner/Standardexporte. Formatgrenzen stehen in [IMPORT-FORMATS.md](IMPORT-FORMATS.md).
 - Eigene Instanzbilder und Symbole, Beschreibungen, Favoriten und zuletzt gespielte Instanz.
 - Automatische Backups vor Mod- und Versionsänderungen, manuelle Sicherungen und Wiederherstellung mit zusätzlichem Rettungsbackup.
@@ -30,9 +30,9 @@ Auf der Startseite **Profil wählen** öffnen. Unter **Microsoft** die Anmeldung
 
 ## Profile, Mods und Sicherungen
 
-**Profile importieren** öffnet die Auswahl der Quell-Launcher. Ein gefundenes Profil auswählen und vor dem Kopieren Version, Loader und Einschränkungen prüfen. Für verschobene Installationen **Ordner auswählen** nutzen. Alternativ eine `.mrpack` auswählen oder ins Fenster ziehen. Die Quelle bleibt erhalten. Kopiert werden unterstützte Spieldaten, keine fremden Anmeldesitzungen oder Java-Startbefehle. Client-eigene Oberflächen und Cosmetics werden nicht konvertiert. Vanilla und Fabric ab Minecraft 1.16 werden gestartet; weitere Loader und ältere Versionen werden abgewiesen.
+**Profile importieren** öffnet die Auswahl der Quell-Launcher. Ein gefundenes Profil auswählen und vor dem Kopieren Version, Loader und Einschränkungen prüfen. Für verschobene Installationen **Ordner auswählen** nutzen. Alternativ eine `.mrpack` auswählen oder ins Fenster ziehen. Die Quelle bleibt erhalten. Kopiert werden unterstützte Spieldaten, keine fremden Anmeldesitzungen oder Java-Startbefehle. Client-eigene Oberflächen und Cosmetics werden nicht konvertiert. Vanilla, Fabric, Forge, NeoForge und Quilt werden ab Minecraft 1.16 gestartet, soweit der jeweilige Loader die gewählte Spielversion unterstützt. Ältere Spielversionen werden abgewiesen.
 
-Unter **Entdecken** ein Projekt öffnen, eine Zielinstanz wählen und **Installation prüfen** drücken. Erst **Jetzt installieren** übernimmt die angezeigten Dateien und erforderlichen Abhängigkeiten. Modpacks erhalten eine eigene neue Instanz. In der Instanzverwaltung findest du **Mods**, **Backups** und **Fehler & Logs** sowie eigene Bilder, Beschreibungen und den Versionswechsel.
+Unter **Entdecken** ein Projekt öffnen, eine Zielinstanz wählen und **Installation prüfen** drücken. Erst **Jetzt installieren** übernimmt die angezeigten Dateien und erforderlichen Abhängigkeiten. Modpacks erhalten eine eigene neue Instanz. Ein Klick auf eine Instanz öffnet eine große Verwaltungsseite mit **Übersicht**, **Mods**, **Backups** und **Fehler & Logs**. Dort gibt es eigene Bilder, Beschreibungen, Such- und Statusfilter sowie den Versions-/Loader-Wechsel. **Mods entdecken** setzt die Minecraft-/Loader-Filter passend zu dieser Instanz und wählt sie bei der Installation vor.
 
 **Einstellungen → Sicherungen → Automatische Backups** ist standardmäßig aktiv. Die letzten fünf automatischen Sicherungen werden behalten; manuelle Sicherungen werden nicht automatisch entfernt. Sicherungen liegen im Launcher-Datenordner unter `backups`. Ein Backup auf demselben Laufwerk ersetzt keine separate Sicherung gegen Laufwerksausfall. Diagnoseprotokolle vor dem Weitergeben trotz Filterung auf weitere private Inhalte prüfen.
 

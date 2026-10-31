@@ -3,6 +3,7 @@ const path=require('node:path');
 const crypto=require('node:crypto');
 const {copyGame,removeChild,exists,gameNames,readJson}=require('./files.cjs');
 const {safeChild}=require('./network.cjs');
+const loaderIds=require('./loader-definitions.json').map(loader=>loader.id);
 class Backups {
   constructor(store){this.store=store;}
   root(id){this.store.instance(id);return path.join(this.store.root,'backups',id);}
@@ -17,7 +18,7 @@ class Backups {
   async restore(id,key,signal){
     if(!/^[a-f0-9-]{36}$/.test(key))throw new Error('Ungültige Sicherung.');
     const source=safeChild(this.root(id),key),meta=await readJson(path.join(source,'backup.json'));
-    if(!/^[\w.-]{1,80}$/.test(meta.instance?.version)||!['fabric','vanilla'].includes(meta.instance?.loader))throw new Error('Die Sicherung ist ungültig.');
+    if(!/^[\w.-]{1,80}$/.test(meta.instance?.version)||!loaderIds.includes(meta.instance?.loader))throw new Error('Die Sicherung ist ungültig.');
     const staged=safeChild(this.store.root,'restore-'+crypto.randomUUID());await fs.mkdir(staged,{recursive:true});
     try{
       await copyGame(path.join(source,'game'),staged,{signal});signal?.throwIfAborted();

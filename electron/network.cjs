@@ -5,7 +5,7 @@ const { Readable } = require('node:stream');
 const { pipeline } = require('node:stream/promises');
 const { createWriteStream } = require('node:fs');
 const USER_AGENT = `CarrotClientLauncher/${require('../package.json').version} (Windows desktop launcher)`;
-const allowed = ['piston-meta.mojang.com', 'piston-data.mojang.com', 'launchermeta.mojang.com', 'launcher.mojang.com', 'libraries.minecraft.net', 'resources.download.minecraft.net', 'meta.fabricmc.net', 'maven.fabricmc.net', 'api.modrinth.com', 'cdn.modrinth.com', 'api.adoptium.net', 'github.com', 'release-assets.githubusercontent.com', 'objects.githubusercontent.com'];
+const allowed = ['piston-meta.mojang.com', 'piston-data.mojang.com', 'launchermeta.mojang.com', 'launcher.mojang.com', 'libraries.minecraft.net', 'resources.download.minecraft.net', 'meta.fabricmc.net', 'maven.fabricmc.net', 'meta.quiltmc.org', 'maven.quiltmc.org', 'files.minecraftforge.net', 'maven.minecraftforge.net', 'maven.neoforged.net', 'api.modrinth.com', 'cdn.modrinth.com', 'api.adoptium.net', 'github.com', 'release-assets.githubusercontent.com', 'objects.githubusercontent.com'];
 function checkUrl(url) { const u = new URL(url); if (u.protocol !== 'https:' || !allowed.includes(u.hostname) || u.username || u.password) throw new Error('Diese Download-Adresse ist nicht zugelassen.'); return u.href; }
 function safeChild(root, relative) { const target = path.resolve(root, relative); if (!target.startsWith(path.resolve(root) + path.sep)) throw new Error('Ungültiger Dateipfad.'); return target; }
 async function request(url, signal) {
@@ -19,6 +19,7 @@ async function request(url, signal) {
   throw new Error('Zu viele Weiterleitungen beim Download.');
 }
 async function json(url, signal) { return (await request(url, signal)).json(); }
+async function text(url, signal) { return (await request(url, signal)).text(); }
 async function hashFile(file, algorithm) { const hash = crypto.createHash(algorithm); const { createReadStream } = require('node:fs'); for await (const chunk of createReadStream(file)) hash.update(chunk); return hash.digest('hex'); }
 async function download(item, file, signal, onBytes) {
   const algorithm = item.sha512 ? 'sha512' : item.sha256 ? 'sha256' : 'sha1', expected = item.sha512 || item.sha256 || item.sha1;
@@ -45,4 +46,4 @@ async function pool(items, task, count = 8) {
   await Promise.all(Array.from({ length: Math.min(count, items.length) }, async () => { while (!failure && index < items.length) { const item = items[index++]; try { await task(item); } catch (e) { failure = e; } } }));
   if (failure) throw failure;
 }
-module.exports = { json, download, hashFile, pool, safeChild, checkUrl };
+module.exports = { json, text, download, hashFile, pool, safeChild, checkUrl };

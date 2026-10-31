@@ -1,27 +1,26 @@
-## CarrotClientLauncher 0.0.2
+## CarrotClientLauncher 0.0.3
 
-Mods direkt installieren, vorhandene Welten mitnehmen und Änderungen mit Backups absichern.
+Instanzen haben jetzt eine eigene große Verwaltungsseite im Hauptbereich des Launchers. Die bisherigen Farben, Schriften und Bedienelemente bleiben erhalten.
 
-- **Modrinth-Installation:** Mods, Ressourcenpakete und Shader direkt einer Instanz zuordnen. Minecraft-/Loader-Versionen und erforderliche Mod-Abhängigkeiten werden vorab geprüft. Mods aktivieren, deaktivieren und auf kompatible Updates prüfen.
-- **Modpacks:** `.mrpack` über die Dateiauswahl, per Drag-and-drop oder aus der Modrinth-Suche als neue Instanz importieren. Fabric-Versionen, Client-Overrides sowie optionale bzw. ausschließlich für Server bestimmte Dateien werden berücksichtigt.
-- **Profile importieren:** Auswahl für Modrinth, Laby Launcher, Lunar Client, NoRiskClient und Badlion Client. Automatische Suche und manuelle Ordnerauswahl mit Prüfung vor der Übernahme. Modrinth unterstützt die aktuelle SQLite-Struktur und ältere JSON-Profile; NoRisk unterstützt JSON und SQLite. Laby/Lunar verwenden erkannte Profile bzw. deren Spielordner oder `.mrpack`-Exporte. Badlion-Spieldaten werden kopiert und Client-Einstellungen als Referenz aufbewahrt.
-- **Backups:** Standardmäßig vor Mod-Änderungen und Versionswechseln sichern. Die letzten fünf automatischen Backups und alle manuellen Backups bleiben erhalten. Beim Wiederherstellen zuerst den aktuellen Stand sichern.
-- **Instanzen:** Eigene Bilder und Symbole, Beschreibungen, Favoriten und schneller Einstieg in die zuletzt gespielte Instanz. Minecraft-Version und Loader mit Bestätigung ändern.
-- **Fehlerhilfe:** Hinweise zu häufigen Java-, Mod-, Speicher- und Grafikfehlern. Protokolle vor dem Teilen ansehen und bereinigt als Textdatei exportieren; kein automatischer Upload.
-- **Startfortschritt:** Minecraft-Start als eigener Schritt zusätzlich zu den Download- und Java-Phasen.
+- **Mehr Platz:** Übersicht, Mods, Backups und Fehlerprotokolle nutzen den verfügbaren Inhaltsbereich. Über Seitenleiste und Bibliothek direkt zwischen Instanzen wechseln.
+- **Klarere Mod-Verwaltung:** Installierte Mods durchsuchen und nach aktiviert/deaktiviert filtern. Die Listen verwenden den Platz der Seite statt eines kleinen Dialogs.
+- **Entdecken mit Kontext:** „Mods entdecken“ in einer Instanz filtert nach deren Minecraft-Version und Loader. Die Zielinstanz ist beim Installieren vorausgewählt; ein Zurück-Link führt zur Instanzverwaltung.
+- **Fünf Spielvarianten:** Vanilla, Fabric, Forge, NeoForge und Quilt. Verfügbare Loader-Versionen werden für die gewählte Minecraft-Version geladen, geprüft und fest übernommen. Nicht verfügbare Kombinationen erhalten eine Meldung.
+- **Offizielle Installation:** Forge/NeoForge werden mit den geprüften offiziellen Installer-JARs installiert, einschließlich ihrer Patch-Prozessoren. Quilt verwendet seine offiziellen Metadaten.
+- **Durchgängige Unterstützung:** Neue Loader auch für Modrinth-Installationen und -Updates, `.mrpack`- und Profilimport, Versionswechsel, Backups, Bibliotheksfilter und Discord-Aktivität.
+- **Mod-Namen:** Auch Quilt-Metadaten und Forge-/NeoForge-TOML werden in der Modliste erkannt.
+- **Startkorrekturen:** Generierte Loader-Bibliotheken bleiben im Klassenpfad. Der ursprüngliche Minecraft-JAR wird bei Forge-/NeoForge-Modulscans korrekt ausgeschlossen.
 
-### Beim Import beachten
+### Geprüft
 
-Unterstützt werden **Vanilla und Fabric ab Minecraft Java 1.16**. Forge, NeoForge, Quilt und ältere Spielversionen werden ausdrücklich abgewiesen. Client-eigene HUDs, Cosmetics, Anmeldekonten, Java-Startbefehle und proprietäre Laufzeiten lassen sich nicht als gleichwertige Vanilla-/Fabric-Funktionen übernehmen. Nicht erkannte Spielversionen bzw. Loader müssen im Importdialog bestätigt werden. Die Originalordner werden nicht verändert.
+- Automatisierte Tests für Persistenz, Kataloge, Versionszuordnung, Installer-Metadaten, Klassenpfade, Modpacks, Mod-Metadaten und bestehende Funktionen.
+- Native Electron-Tests für die große Instanzseite, kompakte Fenster, Suche/Filter, kontextbezogenes Entdecken, Loader-Auswahl und Sicherungen.
+- Echte Installation und Initialisierung bis zur Spieloberfläche: Forge 52.1.20, NeoForge 21.1.265 und Quilt 0.30.2 auf Minecraft 1.21.1; zusätzlich Forge 47.4.28 auf Minecraft 1.20.1. Java 21 bzw. 17 werden passend verwaltet. Die Prüfungen verwenden isolierte Testinstanzen.
 
-Formatvarianten, Quellen und Grenzen: [IMPORT-FORMATS.md](https://github.com/juli22292/carrotclientlauncher/blob/main/IMPORT-FORMATS.md). Eine universelle Kompatibilität mit jeder vergangenen oder künftigen Launcher-Version wird nicht zugesagt.
+### Installation und Grenzen
 
-### Installation und Update
+`carrotclientlaunchersetup.exe` installiert nach **CarrotClientLauncherApp**. Der Launcher startet weiterhin als `carrotclientlauncher.exe`; die portable EXE liegt ebenfalls bei. Bestehende 0.0.1-/0.0.2-Installationen erhalten das Update über GitHub. **Herunterladen** und **Installieren** bleiben getrennte Schritte.
 
-`carrotclientlaunchersetup.exe` installiert im Ordner **CarrotClientLauncherApp**. Die Anwendung heißt weiterhin `carrotclientlauncher.exe`. Eine portable EXE liegt ebenfalls bei.
+Unterstützt werden Minecraft-Versionen ab 1.16, soweit der jeweilige Loader dafür tatsächlich verfügbar ist. Mods müssen ausdrücklich zur gewählten Minecraft-/Loader-Version passen. Ein vorhandener Forge-Mod wird nicht automatisch zu einer NeoForge- oder Quilt-Mod konvertiert. Eigene HUDs, Cosmetics und Konten fremder Clients bleiben an deren Client gebunden.
 
-Bestehende 0.0.1-Installationen erhalten das Update über GitHub Releases. Im Launcher zuerst **Update herunterladen**, danach **Update installieren**. Beide Schritte bleiben getrennt. Bestehende Instanzen bleiben erhalten.
-
-Für Installationen aus der früheren 0.4.0-Versionsreihe ist eine einmalige manuelle Installation nötig, da ein automatisches Downgrade nicht angeboten wird.
-
-Die Freigabe der eigenen Microsoft-App-ID für Minecraft Services ist weiterhin ein externer Schritt. Der vollständige Spieltest mit einem lizenzierten Microsoft-Konto steht aus.
+Die externe Freigabe der eigenen Microsoft-App-ID für Minecraft Services bleibt erforderlich. Die Spielstartprüfungen ersetzen keinen vollständigen Live-Anmeldetest mit einem lizenzierten Microsoft-Konto.
