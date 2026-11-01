@@ -75,6 +75,7 @@ async function main() {
     await page.getByRole('button',{name:'Abmelden',exact:true}).click();
     await page.waitForFunction(async()=>(await window.carrot.getData()).account===null);
     await page.getByRole('button',{name:'Karottenwelt verwalten'}).click();
+    await page.getByRole('tab',{name:'Einstellungen',exact:true}).click();
     await page.getByRole('textbox',{name:'Name der Instanz'}).fill('Meine Karottenwelt');
     await page.getByRole('button',{name:'Speichern',exact:true}).click();
     await page.getByRole('heading',{name:/^Meine Karottenwelt\.?$/}).last().waitFor();
@@ -101,9 +102,9 @@ async function main() {
     await page.getByRole('button',{name:'Schließen',exact:true}).click();
     await page.getByRole('button',{name:'Bibliothek',exact:false}).first().click();
     await page.getByRole('button',{name:'Meine Karottenwelt verwalten'}).click();
-    await page.getByRole('button',{name:'Archivieren',exact:true}).click();
+    await page.getByRole('button',{name:'Instanz archivieren',exact:true}).click();
     await page.getByRole('dialog',{name:'Instanz archivieren?'}).getByRole('button',{name:'Archivieren',exact:true}).click();
-    await page.getByRole('heading',{name:'Hier ist Platz für deine Welten.'}).waitFor();
+    await page.getByRole('heading',{name:'Noch keine Instanz vorhanden'}).waitFor();
     assert.equal((await page.evaluate(() => window.carrot.getData())).instances.length,0);
     await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].setSize(1080,720));
     await page.getByRole('button',{name:'Startseite',exact:true}).click();

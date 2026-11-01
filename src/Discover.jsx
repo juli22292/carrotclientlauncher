@@ -1,0 +1,55 @@
+import React, { useEffect, useRef, useState } from 'react';
+import { ArrowLeft, ArrowRight, Box, Check, Compass, Download, Grid2X2, Layers3, List, LockKeyhole, Package, RefreshCw, Search, WandSparkles, X, CircleAlert } from 'lucide-react';
+import { loaderName } from './loaders.js';
+
+const api = window.carrot;
+const types = [{ id: 'mod', name: 'Mods', icon: Box }, { id: 'modpack', name: 'Modpacks', icon: Layers3 }, { id: 'resourcepack', name: 'Ressourcenpakete', icon: Package }, { id: 'shader', name: 'Shader', icon: WandSparkles }];
+const number = n => Intl.NumberFormat('de', { notation: 'compact', maximumFractionDigits: 1 }).format(n || 0);
+const cleanError = e => e.message.replace(/^Error invoking remote method '[^']+': Error: /, '');
+
+export default function Discover({ instances, instanceId, onInstanceChange, onReturn, onProject, state, onState, refreshKey, onCreate }) {
+  const { type = 'mod', query = '', offset = 0, index = 'downloads', limit = 20, view = 'list', hideInstalled = false } = state;
+  const [results, setResults] = useState(null), [loading, setLoading] = useState(true), [error, setError] = useState(''), [inventory, setInventory] = useState([]), [inventoryError, setInventoryError] = useState(''), [inventoryLoading, setInventoryLoading] = useState(false), [retry, setRetry] = useState(0);
+  const search = useRef();
+  const instance = instances.find(i => i.id === instanceId);
+  const ids = [...new Set(inventory.map(m => m.projectId).filter(Boolean))];
+  const excluded = instanceId && hideInstalled && type !== 'modpack' ? ids.slice(0, 2000).sort().join(',') : '';
+  const change = patch => { onState({ ...state, ...patch }); if (patch.offset !== undefined && patch.offset !== offset) document.querySelector('.page-content')?.scrollTo(0, 0); };
+  useEffect(() => {
+    let active = true; setInventory([]); setInventoryError(''); setInventoryLoading(!!instanceId);
+    if (instanceId) api.getContent(instanceId).then(items => { if (active) setInventory(items); }).catch(e => { if (active) setInventoryError(cleanError(e)); }).finally(() => { if (active) setInventoryLoading(false); });
+    return () => { active = false; };
+  }, [instanceId, refreshKey, retry]);
+  useEffect(() => {
+    let active = true; setLoading(true); setError('');
+    const timer = setTimeout(() => api.searchProjects({ query, type, offset, index, limit, instanceId, exclude: excluded ? excluded.split(',') : [] }).then(value => { if (active) setResults(value); }).catch(e => { if (active) setError(cleanError(e)); }).finally(() => { if (active) setLoading(false); }), 300);
+    return () => { active = false; clearTimeout(timer); };
+  }, [query, type, offset, index, limit, instanceId, excluded, retry]);
+  useEffect(() => { const key = e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f' && !document.querySelector('[role="dialog"]')) { e.preventDefault(); search.current?.focus(); } }; document.addEventListener('keydown', key); return () => document.removeEventListener('keydown', key); }, []);
+  const lastPage = Math.max(1, Math.ceil(Math.min(results?.total_hits || 0, 100000 + limit) / limit));
+  const pager = <div className="pagination"><button className="button secondary compact" disabled={loading || offset === 0} onClick={() => change({ offset: Math.max(0, offset - limit) })}><ArrowLeft size={15}/> Zurück</button><span>Seite {Math.floor(offset / limit) + 1} von {lastPage.toLocaleString('de-DE')}</span><button className="button secondary compact" disabled={loading || offset + limit >= (results?.total_hits || 0) || offset + limit > 100000} onClick={() => change({ offset: offset + limit })}>Weiter <ArrowRight size={15}/></button></div>;
+
+  return <section className="discovery-workspace" aria-label="Inhalte entdecken">
+    <header className="page-header"><div><div className="eyebrow">MODRINTH</div><h1>Inhalte entdecken<span className="heading-dot">.</span></h1><p>{instance ? `Mods und Pakete für ${instance.name}.` : 'Suche nach Mods und Paketen oder wähle zuerst eine Zielinstanz.'}</p></div><span className="badge"><Compass size={15}/> Modrinth</span></header>
+    <div className="discover-context"><label>Installieren für<select aria-label="Entdecken für Instanz" value={instanceId} onChange={e => { onInstanceChange(e.target.value); change({ offset: 0 }); }}><option value="">Ohne Zielinstanz stöbern</option>{instances.map(i => <option key={i.id} value={i.id}>{i.name} · {i.version} / {loaderName(i.loader)}</option>)}</select></label>{instance && <button className="text-button" onClick={onReturn}><ArrowLeft size={15}/> Zurück zur Instanz</button>}{!instances.length && <button className="text-button" onClick={onCreate}>Instanz erstellen <ArrowRight size={15}/></button>}</div>
+    <div className="discover-tabs" role="tablist" aria-label="Projekttyp">{types.map(t => <button role="tab" key={t.id} aria-selected={type === t.id} className={type === t.id ? 'active' : ''} onClick={() => change({ type: t.id, offset: 0 })}><t.icon size={17}/>{t.name}</button>)}</div>
+    <div className="discovery-layout"><div className="discovery-main">
+      <div className="search-field discovery-search"><Search size={19}/><input ref={search} maxLength={200} aria-label="Modrinth durchsuchen" placeholder={`${types.find(t => t.id === type)?.name} suchen …`} value={query} onChange={e => change({ query: e.target.value, offset: 0 })}/>{query ? <button className="icon-button tiny" aria-label="Suche löschen" onClick={() => change({ query: '', offset: 0 })}><X size={16}/></button> : <kbd>Strg F</kbd>}</div>
+      <div className="discovery-sort"><label>Sortieren<select aria-label="Suchergebnisse sortieren" value={index} onChange={e => change({ index: e.target.value, offset: 0 })}><option value="downloads">Downloads</option><option value="relevance">Relevanz</option><option value="updated">Zuletzt aktualisiert</option><option value="newest">Neu hinzugefügt</option><option value="follows">Beliebt</option></select></label><label>Pro Seite<select aria-label="Ergebnisse pro Seite" value={limit} onChange={e => change({ limit: Number(e.target.value), offset: 0 })}><option value={20}>20</option><option value={40}>40</option></select></label><div className="view-toggle"><button className={view === 'list' ? 'selected' : ''} aria-label="Ergebnisse als Liste" aria-pressed={view === 'list'} onClick={() => change({ view: 'list' })}><List size={18}/></button><button className={view === 'grid' ? 'selected' : ''} aria-label="Ergebnisse als Kacheln" aria-pressed={view === 'grid'} onClick={() => change({ view: 'grid' })}><Grid2X2 size={18}/></button></div></div>
+      <div className="results-heading" role="status"><span>{loading ? 'Projekte werden geladen …' : error ? 'Suche fehlgeschlagen' : `${number(results?.total_hits)} Projekte`}</span><span>{instance ? `${instance.version} · ${loaderName(instance.loader)}` : 'Alle Versionen'}</span></div>
+      {inventoryError && <p className="form-error" role="alert">Installierte Inhalte konnten nicht gelesen werden. {inventoryError}<button className="text-button" onClick={() => setRetry(n => n + 1)}>Erneut lesen</button></p>}
+      {error ? <div className="content-empty"><CircleAlert size={30}/><h3>Modrinth ist gerade nicht erreichbar</h3><p>{error}</p><button className="button secondary compact" onClick={() => setRetry(n => n + 1)}><RefreshCw size={16}/> Erneut versuchen</button></div> : loading ? <div className={`discovery-results ${view}`} aria-busy="true">{[0,1,2,3].map(n => <div className="discovery-skeleton skeleton" key={n}><i/><span/></div>)}</div> : results?.hits.length ? <><div className={`discovery-results ${view}`}>{results.hits.map(p => {
+        const installed = inventory.filter(m => m.projectId === p.project_id), hasInstall = installed.length > 0;
+        return <article className="project-card discover-result" key={p.project_id}>
+          <button className="discovery-project-main" onClick={() => onProject(p)}><ProjectImage project={p}/><div><h3>{p.title}</h3><span className="project-author">von {p.author}</span><p>{p.description}</p><div className="project-tags">{(p.display_categories || []).slice(0,3).map(c => <span key={c}>{c}</span>)}</div></div></button>
+          <div className="discovery-project-actions">{hasInstall ? <span className="installed-badge"><Check size={14}/>{installed.some(m => m.enabled) ? 'Installiert' : 'Deaktiviert'}</span> : instance && type !== 'modpack' ? <button className="button secondary compact" onClick={() => onProject(p)}><Download size={15}/> Installieren</button> : <button className="button secondary compact" onClick={() => onProject(p)}>{type === 'modpack' ? 'Modpack ansehen' : 'Details'}</button>}<span><Download size={13}/>{number(p.downloads)}</span>{hasInstall && <button className="text-button" onClick={onReturn}>Verwalten <ArrowRight size={13}/></button>}</div>
+        </article>;
+      })}</div>{pager}</> : <div className="content-empty"><Search size={30}/><h3>Keine passenden Projekte</h3><p>{hideInstalled && instance ? 'Ändere den Suchbegriff oder blende installierte Inhalte wieder ein.' : instance?.loader === 'vanilla' && type === 'mod' ? 'Diese Instanz nutzt Vanilla. Wähle in ihren Einstellungen einen Modloader oder suche nach Ressourcenpaketen.' : 'Versuche einen anderen Suchbegriff oder einen anderen Inhaltstyp.'}</p><button className="button secondary compact" onClick={() => change({ query: '', hideInstalled: false, offset: 0 })}>Suche zurücksetzen</button></div>}
+    </div><aside className="discovery-sidebar" aria-label="Suchfilter"><h2>Passende Inhalte</h2>{instance ? <><div className="compatibility-filter"><span>Minecraft-Version</span><strong><LockKeyhole size={14}/>{instance.version}</strong></div><div className="compatibility-filter"><span>Modloader</span><strong><LockKeyhole size={14}/>{loaderName(instance.loader)}</strong></div><p>Version und Loader kommen aus deiner Instanz. Vor der Installation prüft der Launcher die Dateien und benötigten Abhängigkeiten.</p><label className="checkbox-label hide-installed"><input type="checkbox" checked={hideInstalled} disabled={inventoryLoading || !!inventoryError || type === 'modpack'} onChange={e => change({ hideInstalled: e.target.checked, offset: 0 })}/> Installierte Inhalte ausblenden</label><small>Erkannt werden über Modrinth zugeordnete Projekte. Modpacks werden als eigene Instanz angelegt.</small></> : <><p>Mit einer Zielinstanz zeigt die Suche Inhalte für deren Minecraft-Version und Modloader an.</p><small>Modpacks importierst du als neue Instanz mit der jeweiligen Spielversion.</small></>}<button className="text-button" onClick={() => api.openExternal(`https://modrinth.com/${type}s`).catch(() => {})}>Modrinth im Browser <ArrowRight size={14}/></button></aside></div>
+  </section>;
+}
+
+function ProjectImage({ project: p }) {
+  const [failed, setFailed] = useState(false);
+  return !failed && p.icon_url?.startsWith('https://cdn.modrinth.com/') ? <img className="project-icon" src={p.icon_url} loading="lazy" alt="" onError={() => setFailed(true)}/> : <div className="project-icon fallback-icon"><Package size={25}/></div>;
+}

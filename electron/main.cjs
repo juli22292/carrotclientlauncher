@@ -11,6 +11,7 @@ const { MICROSOFT_CLIENT_ID } = require('./config.cjs');
 const { Content } = require('./content.cjs');
 const { report } = require('./diagnostics.cjs');
 const { json } = require('./network.cjs');
+const { searchParameters } = require('./search.cjs');
 protocol.registerSchemesAsPrivileged([{ scheme: 'carrot', privileges: { standard: true, secure: true, supportFetchAPI: true } }]);
 app.setName('CarrotClientLauncher');
 app.setAppUserModelId('de.carrotclient.launcher');
@@ -67,6 +68,14 @@ else {
     bind('changeInstanceVersion',(id,value)=>content.changeVersion(id,value));
     bind('chooseInstanceImage',async(id,kind)=>{if(!['cover','icon'].includes(kind))throw new Error('Unbekannter Bildtyp.');store.instance(id);const result=await dialog.showOpenDialog(window,{title:kind==='icon'?'Instanzsymbol auswählen':'Instanzbild auswählen',filters:[{name:'Bilder',extensions:['png','jpg','jpeg','webp']}],properties:['openFile']});if(result.canceled)return null;const file=result.filePaths[0];if((await require('node:fs/promises').stat(file)).size>10*1024*1024)throw new Error('Bitte ein Bild unter 10 MB verwenden.');const image=nativeImage.createFromPath(file);if(image.isEmpty())throw new Error('Das Bild konnte nicht gelesen werden.');const resized=image.resize({width:kind==='icon'?128:1024});const value=kind==='icon'?resized.toDataURL():'data:image/jpeg;base64,'+resized.toJPEG(85).toString('base64');await store.update(id,{[kind]:value});emit('data');return value;});
     bind('getMods',id=>content.mods(id));
+    bind('getContent',id=>content.inventory(id));
+    bind('toggleContent',(id,folder,file)=>content.changeContent(id,folder,file));
+    bind('removeContent',(id,folder,file)=>content.changeContent(id,folder,file,true));
+    bind('chooseContentFiles',async(id,type)=>{
+      content.guard(id);if(!['mod','resourcepack','shader'].includes(type))throw new Error('Unbekannter Inhaltstyp.');
+      const result=await dialog.showOpenDialog(window,{title:'Dateien zur Instanz hinzufügen',filters:[{name:type==='mod'?'Minecraft-Mods':'Minecraft-Pakete',extensions:[type==='mod'?'jar':'zip']}],properties:['openFile','multiSelections']});
+      return result.canceled?0:content.importFiles(id,type,result.filePaths);
+    });
     bind('toggleMod',(id,file)=>content.toggleMod(id,file));
     bind('getModUpdates',id=>content.task(id,'Mod-Updates werden gesucht',()=>content.updates(id)));
     bind('planProject',(id,project,version)=>content.plan(id,project,version));
@@ -92,11 +101,8 @@ else {
     bind('saveSettings', async value => { const result = await store.settings(value); updatePresence(); emit('data'); return result; });
     bind('chooseJava', async () => { const result = await dialog.showOpenDialog(window, { title: 'Java auswählen', filters: [{ name: 'Java', extensions: ['exe'] }], properties: ['openFile'] }); return result.canceled ? null : result.filePaths[0]; });
     bind('openFolder', async id => { const result = await shell.openPath(id ? store.directory(id) : store.root); if (result) throw new Error(result); });
-    bind('searchProjects', async ({ query = '', type = 'mod', offset = 0, instanceId = '' } = {}) => {
-      if (!['mod', 'modpack', 'shader', 'resourcepack'].includes(type) || typeof query !== 'string' || query.length > 200) throw new Error('Ungültige Suche.');
-      const facets=[[`project_type:${type}`]];
-      if(instanceId){const instance=store.instance(instanceId);facets.push([`versions:${instance.version}`]);if(type==='mod'||type==='modpack')facets.push([`categories:${instance.loader}`]);}
-      const params = new URLSearchParams({ query, facets: JSON.stringify(facets), index: 'downloads', limit: '12', offset: String(Math.max(0, Math.min(1000, Number(offset) || 0))) });
+    bind('searchProjects', async ({instanceId='',...options}={}) => {
+      const params=searchParameters(options,instanceId?store.instance(instanceId):null);
       return json('https://api.modrinth.com/v2/search?' + params);
     });
     bind('openExternal', async value => { const url = new URL(value); if (url.protocol !== 'https:' || !['modrinth.com', 'www.minecraft.net', 'learn.microsoft.com', 'portal.azure.com', 'microsoft.com', 'www.microsoft.com', 'login.microsoftonline.com'].includes(url.hostname)) throw new Error('Dieser Link ist nicht freigegeben.'); await shell.openExternal(url.href); });

@@ -1,6 +1,6 @@
 # CarrotClientLauncher
 
-Ein eigenständiger Minecraft-Java-Launcher für Windows 10/11 (64 Bit), mit deutscher Oberfläche, eigener Instanzbibliothek, Modrinth-Installation und Profilimport. Aktuelle Version: **0.0.3**.
+Ein eigenständiger Minecraft-Java-Launcher für Windows 10/11 (64 Bit), mit deutscher Oberfläche, eigener Instanzbibliothek, Modrinth-Installation und Profilimport. Aktuelle Version: **0.0.4**.
 
 ## Öffnen
 
@@ -32,7 +32,9 @@ Auf der Startseite **Profil wählen** öffnen. Unter **Microsoft** die Anmeldung
 
 **Profile importieren** öffnet die Auswahl der Quell-Launcher. Ein gefundenes Profil auswählen und vor dem Kopieren Version, Loader und Einschränkungen prüfen. Für verschobene Installationen **Ordner auswählen** nutzen. Alternativ eine `.mrpack` auswählen oder ins Fenster ziehen. Die Quelle bleibt erhalten. Kopiert werden unterstützte Spieldaten, keine fremden Anmeldesitzungen oder Java-Startbefehle. Client-eigene Oberflächen und Cosmetics werden nicht konvertiert. Vanilla, Fabric, Forge, NeoForge und Quilt werden ab Minecraft 1.16 gestartet, soweit der jeweilige Loader die gewählte Spielversion unterstützt. Ältere Spielversionen werden abgewiesen.
 
-Unter **Entdecken** ein Projekt öffnen, eine Zielinstanz wählen und **Installation prüfen** drücken. Erst **Jetzt installieren** übernimmt die angezeigten Dateien und erforderlichen Abhängigkeiten. Modpacks erhalten eine eigene neue Instanz. Ein Klick auf eine Instanz öffnet eine große Verwaltungsseite mit **Übersicht**, **Mods**, **Backups** und **Fehler & Logs**. Dort gibt es eigene Bilder, Beschreibungen, Such- und Statusfilter sowie den Versions-/Loader-Wechsel. **Mods entdecken** setzt die Minecraft-/Loader-Filter passend zu dieser Instanz und wählt sie bei der Installation vor.
+Ein Klick auf eine Instanz öffnet zuerst **Inhalte**. Dort stehen Mods, Ressourcenpakete und Shader in einer gemeinsamen Tabelle. Suche, Typ-/Statusfilter und Sortierung helfen bei größeren Sammlungen. **Dateien hinzufügen** übernimmt eigene JAR- oder ZIP-Dateien, ohne die Quelle oder vorhandene Dateien zu überschreiben. **Updates suchen** markiert kompatible Mod-Updates direkt an den Dateien. Entfernen fragt vorher nach; automatische Sicherungen richten sich nach der Einstellung im Launcher. Name, Bilder und Versions-/Loader-Wechsel stehen unter **Einstellungen**, Sicherungen unter **Backups**.
+
+**Inhalte entdecken** übernimmt die Minecraft-Version und den Loader der Instanz. Die Suche bietet Listen-/Kachelansicht, Sortierung und 20/40 Ergebnisse pro Seite. Bekannte Modrinth-Projekte sind als installiert markiert und können ausgeblendet werden. Der Suchzustand bleibt beim Zurückkehren erhalten. Erst **Installation prüfen** zeigt die benötigten Dateien; **Jetzt installieren** übernimmt sie. Modpacks bekommen eine eigene Instanz.
 
 **Einstellungen → Sicherungen → Automatische Backups** ist standardmäßig aktiv. Die letzten fünf automatischen Sicherungen werden behalten; manuelle Sicherungen werden nicht automatisch entfernt. Sicherungen liegen im Launcher-Datenordner unter `backups`. Ein Backup auf demselben Laufwerk ersetzt keine separate Sicherung gegen Laufwerksausfall. Diagnoseprotokolle vor dem Weitergeben trotz Filterung auf weitere private Inhalte prüfen.
 
@@ -59,9 +61,9 @@ Die öffentliche Anwendungs-ID deiner eigenen App-Registrierung ist fest in `ele
 
 Refresh- und Zugriffstokens werden nur lokal mit Electron `safeStorage` über den Windows-Schlüsselspeicher verschlüsselt gespeichert und nicht an die Oberfläche gegeben. Beim Spielen wird eine ablaufende Sitzung erneuert und die Berechtigung erneut geprüft. Abmelden entfernt die gespeicherte Sitzung. Ältere lokale Profilnamen und konfigurierbare Anwendungs-IDs werden bei der Migration entfernt; Instanzen und Welten bleiben erhalten.
 
-### Noch erforderliche Freigabe und Prüfung
+### Freigabe und Anmeldeprüfung
 
-Die Konfiguration und der Anmeldeablauf werden mit kontrollierten Testantworten geprüft. Für die neue eigene Client-ID wurde kein Live-Anmeldeversuch ausgeführt. Die vollständige Kontobestätigung und die nachfolgenden Xbox-/Minecraft-Schritte erfordern die interaktive Anmeldung des Kontoinhabers auf dem gewünschten PC und stehen noch aus.
+Die API-Freigabe der eigenen Anwendungs-ID liegt laut Projektbetreiber vor. Die Konfiguration und der Anmeldeablauf werden mit kontrollierten Testantworten geprüft. Für die neue eigene Client-ID wurde kein Live-Anmeldeversuch ausgeführt. Die vollständige Kontobestätigung und die nachfolgenden Xbox-/Minecraft-Schritte erfordern die interaktive Anmeldung des Kontoinhabers auf dem gewünschten PC und stehen noch aus.
 
 Neue Launcher-IDs benötigen zusätzlich eine Freigabe für Minecraft Services. Falls nach der Browser-Anmeldung die Meldung **„Minecraft verweigert dieser Launcher-App den Zugriff … HTTP 403“** erscheint, prüfe den Antrag für genau diese Client-ID unter [Mojangs App-ID-Prüfung](https://aka.ms/mce-reviewappid). Ein Microsoft-Anmeldecode allein bestätigt diese Freigabe noch nicht. Die Genehmigung ist ein externer Schritt; der Launcher kann sie nicht selbst erteilen.
 
