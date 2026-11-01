@@ -1,6 +1,6 @@
 # CarrotClientLauncher
 
-Ein eigenständiger Minecraft-Java-Launcher für Windows 10/11 (64 Bit), mit deutscher Oberfläche, eigener Instanzbibliothek, Modrinth-Installation und Profilimport. Aktuelle Version: **0.0.4**.
+Ein eigenständiger Minecraft-Java-Launcher für Windows 10/11 (64 Bit), mit deutscher Oberfläche, eigener Instanzbibliothek, Modrinth-Installation und Profilimport. Aktuelle Version: **0.0.5**.
 
 ## Öffnen
 
@@ -34,7 +34,9 @@ Auf der Startseite **Profil wählen** öffnen. Unter **Microsoft** die Anmeldung
 
 Ein Klick auf eine Instanz öffnet zuerst **Inhalte**. Dort stehen Mods, Ressourcenpakete und Shader in einer gemeinsamen Tabelle. Suche, Typ-/Statusfilter und Sortierung helfen bei größeren Sammlungen. **Dateien hinzufügen** übernimmt eigene JAR- oder ZIP-Dateien, ohne die Quelle oder vorhandene Dateien zu überschreiben. **Updates suchen** markiert kompatible Mod-Updates direkt an den Dateien. Entfernen fragt vorher nach; automatische Sicherungen richten sich nach der Einstellung im Launcher. Name, Bilder und Versions-/Loader-Wechsel stehen unter **Einstellungen**, Sicherungen unter **Backups**.
 
-**Inhalte entdecken** übernimmt die Minecraft-Version und den Loader der Instanz. Die Suche bietet Listen-/Kachelansicht, Sortierung und 20/40 Ergebnisse pro Seite. Bekannte Modrinth-Projekte sind als installiert markiert und können ausgeblendet werden. Der Suchzustand bleibt beim Zurückkehren erhalten. Erst **Installation prüfen** zeigt die benötigten Dateien; **Jetzt installieren** übernimmt sie. Modpacks bekommen eine eigene Instanz.
+**Inhalte entdecken** öffnet die Suche für genau diese Instanz. Minecraft-Version und Loader sowie die Zielinstanz sind festgelegt. Die kompatible Datei und erforderliche Abhängigkeiten werden beim Öffnen des Projekts automatisch geprüft. **Jetzt installieren** übernimmt sie direkt in dieses Profil. Ressourcenpakete und Shader können bei laufendem Minecraft hinzugefügt und anschließend im Spiel ausgewählt oder neu geladen werden. Sobald eine Installation Mods enthält, muss das Spiel dafür beendet werden. Automatische Inhaltsbackups sichern nur die betroffenen Inhaltsordner und ihre Projektzuordnungen.
+
+Neue Modpacks werden unter **Entdecken → Modpacks** global gesucht. Ein einzelner Dialog enthält den Namen der neuen Instanz, Paketversion und optionale Client-Dateien. Ein Modpack erhält seinen eigenen Spielordner und wird nach der Installation direkt geöffnet. Es wird nicht innerhalb einer bestehenden Instanz installiert. Die Suche in einer bestehenden Instanz bietet deshalb nur Mods, Ressourcenpakete und Shader an.
 
 **Einstellungen → Sicherungen → Automatische Backups** ist standardmäßig aktiv. Die letzten fünf automatischen Sicherungen werden behalten; manuelle Sicherungen werden nicht automatisch entfernt. Sicherungen liegen im Launcher-Datenordner unter `backups`. Ein Backup auf demselben Laufwerk ersetzt keine separate Sicherung gegen Laufwerksausfall. Diagnoseprotokolle vor dem Weitergeben trotz Filterung auf weitere private Inhalte prüfen.
 

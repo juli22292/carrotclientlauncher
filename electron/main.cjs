@@ -72,7 +72,7 @@ else {
     bind('toggleContent',(id,folder,file)=>content.changeContent(id,folder,file));
     bind('removeContent',(id,folder,file)=>content.changeContent(id,folder,file,true));
     bind('chooseContentFiles',async(id,type)=>{
-      content.guard(id);if(!['mod','resourcepack','shader'].includes(type))throw new Error('Unbekannter Inhaltstyp.');
+      if(!['mod','resourcepack','shader'].includes(type))throw new Error('Unbekannter Inhaltstyp.');content.guard(id,{allowRunning:type!=='mod'});
       const result=await dialog.showOpenDialog(window,{title:'Dateien zur Instanz hinzufügen',filters:[{name:type==='mod'?'Minecraft-Mods':'Minecraft-Pakete',extensions:[type==='mod'?'jar':'zip']}],properties:['openFile','multiSelections']});
       return result.canceled?0:content.importFiles(id,type,result.filePaths);
     });
@@ -93,6 +93,7 @@ else {
     bind('chooseModpack',async()=>{const result=await dialog.showOpenDialog(window,{title:'Modrinth-Modpack importieren',filters:[{name:'Modrinth-Modpack',extensions:['mrpack']}],properties:['openFile']});return result.canceled?null:content.inspectPack(result.filePaths[0]);});
     bind('inspectDroppedModpack',file=>{if(typeof file!=='string'||!file.toLowerCase().endsWith('.mrpack'))throw new Error('Bitte eine .mrpack-Datei auswählen.');return content.inspectPack(file);});
     bind('importModpack',value=>content.importPack(value));
+    bind('importProjectPack',(project,version,options)=>content.importProjectPack(project,version,options));
     bind('prepareProjectPack',async(project,version)=>{if(!/^[-\w]{1,100}$/.test(project)||!/^[-\w]{1,100}$/.test(version))throw new Error('Ungültiges Modpack.');return content.task(null,'Modpack wird geladen',async signal=>{const v=await json('https://api.modrinth.com/v2/version/'+version,signal);if(v.project_id!==project)throw new Error('Dieses Modpack gehört nicht zum ausgewählten Projekt.');const f=v.files.find(f=>f.primary)||v.files[0];if(!f||!f.filename.endsWith('.mrpack')||!/^[a-f0-9]{40}$/i.test(f.hashes?.sha1||''))throw new Error('Kein gültiges Modpack vorhanden.');const root=path.join(store.root,'pack-cache');await require('node:fs/promises').mkdir(root,{recursive:true});const target=path.join(root,version+'.mrpack');await require('./network.cjs').download({url:f.url,sha1:f.hashes.sha1,size:f.size,maxSize:1024*1024*1024},target,signal);return content.inspectPack(target);});});
     bind('removeInstance', async id => { if (engine.running.has(id) || engine.starting.has(id) || engine.busy?.instanceId === id) throw new Error('Beende zuerst das Spiel bzw. den Download.'); await store.remove(id); emit('data'); });
     bind('install', id => engine.install(id));

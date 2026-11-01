@@ -1,22 +1,23 @@
-## CarrotClientLauncher 0.0.4
+## CarrotClientLauncher 0.0.5
 
-Instanzen öffnen jetzt direkt ihre Inhalte. Mods, Ressourcenpakete und Shader stehen in einer gemeinsamen Liste mit Namen, Datei, Version, Größe und Schaltern. Farben, Schriften und Bilder bleiben im Carrot-Stil.
+Installationen bleiben jetzt bei der Instanz, aus der du sie gestartet hast. Ressourcenpakete und Shader lassen sich bei laufendem Minecraft hinzufügen; Mod-Änderungen benötigen weiterhin ein beendetes Spiel und werden beim nächsten Start geladen.
 
-- **Inhalte verwalten:** Nach Name, Dateiname und Version suchen, nach Inhaltstyp und Aktivierung filtern und die Liste sortieren. Verfügbare Mod-Updates erscheinen direkt an der jeweiligen Datei. Zugeordnete Modrinth-Projekte können ihr Projektsymbol anzeigen.
-- **Eigene Dateien hinzufügen:** JAR-Mods und ZIP-Pakete über die Dateiauswahl in eine Instanz übernehmen. Die Quelldateien bleiben erhalten; vorhandene Dateien werden nicht überschrieben. Entfernen erfordert eine Bestätigung. Automatische Backups werden entsprechend der bestehenden Einstellung erstellt.
-- **Übersichtlicher entdecken:** Listen- und Kachelansicht, 20 oder 40 Ergebnisse pro Seite und Sortierung nach Downloads, Relevanz, Aktualisierung oder Veröffentlichungsdatum. Suche und Filter bleiben beim Wechsel zur Instanz erhalten. Strg+F fokussiert die Suche.
-- **Installationsstatus sehen:** Bekannte Modrinth-Projekte werden als installiert oder deaktiviert markiert und können aus der Suche ausgeblendet werden. Lokal hinzugefügte Dateien ohne Projektzuordnung werden nicht als beliebige Modrinth-Projekte erkannt.
-- **Passende Zielinstanz:** Minecraft-Version und Modloader sind sichtbar an die Instanz gebunden. Mod-Installationen bieten nur Instanzen mit Modloader an. Modpacks werden weiterhin als eigene Instanz importiert; Vanilla verhindert nicht mehr die Suche nach passenden Modpacks.
-- **Klarere Bedienung:** Spielen und Profilwahl stehen am Instanzkopf. Darstellung und Versionswechsel sind im Tab Einstellungen, Sicherungen und Protokolle in eigenen Tabs. Wechsel zwischen den Tabs funktioniert auch per Pfeiltasten. Die Startseite bietet den direkten Start eines vorhandenen Profils.
+- **Keine doppelte Zielauswahl:** In der Instanzsuche und im Installationsdialog wird das aktuelle Profil fest angezeigt. Eine fehlende oder ungeeignete Instanz führt nicht zur Installation in einem anderen Profil.
+- **Passende Version automatisch prüfen:** Die kompatible Datei und benötigte Abhängigkeiten werden beim Öffnen des Projekts geprüft. Danach genügt Jetzt installieren. Nach einem Verbindungsfehler ist ein erneuter Versuch im selben Dialog möglich.
+- **Modpacks separat erstellen:** Die globale Modpack-Suche fragt nicht nach einer bestehenden Zielinstanz. Ein Dialog enthält Name, Paketversion, Minecraft-Version, Loader und optionale Client-Dateien. Eine stabile Paketversion wird bevorzugt. Nach der Installation öffnet sich direkt die neue Instanz.
+- **Keine verschachtelten Modpacks:** Beim Hinzufügen von Inhalten zu einem bestehenden Profil werden Mods, Ressourcenpakete und Shader angeboten. Neue Modpacks haben einen eigenen Ablauf und eigene Spielordner.
+- **Ressourcenpakete und Shader während des Spielens:** Installation und Dateiimport sind möglich, ohne Minecraft zu beenden. Die Inhalte werden anschließend im Spiel ausgewählt oder neu geladen. Enthält eine Installation eine erforderliche Mod, greift dafür der Mod-Schutz.
+- **Gezielte Inhaltsbackups:** Automatische Sicherungen vor Inhaltsänderungen erfassen die betroffenen Ordner und deren Projektzuordnungen. Eine Inhaltswiederherstellung erhält aktuelle Welten, Einstellungen und andere Inhalte. Alte vollständige Sicherungen bleiben wiederherstellbar.
+- **Kleine UI-Korrekturen:** Neue Modpacks sind als solche erkennbar und in der Bibliothek filterbar. Erfolgsmeldungen verdecken keine geöffneten Dialoge mehr.
 
 ### Geprüft
 
-- 62 automatisierte Tests, einschließlich Dateiimport, Kollisionsschutz, Sicherung/Wiederherstellung, verknüpfter Verzeichnisse und Suchparameter.
-- Native Electron-Abläufe für Profilimport, Anmeldung mit kontrollierten Antworten, Instanzverwaltung, Inhaltssuche, Dateiimport, Bestätigungen, Installiert-Markierungen, Seitenwechsel, verzögerte Suchantworten und kompakte Fenster.
-- Windows-Build mit Installer, portabler EXE und Update-Dateien; Prüfsummenprüfung und separate Prüfung der gebauten Anwendung.
+69 automatisierte Tests sowie native Oberflächentests für laufende Instanzen, feste Zielprofile, Mod-Abhängigkeiten, den gesamten Modpack-Ablauf, Wiederholung nach Verbindungsfehlern, Import, ältere Backups und kompakte Fenster. Die gebauten Windows-Anwendungen und der öffentliche Update-Kanal werden zusätzlich geprüft.
 
-### Installation
+### Installation und Hinweise
 
-`carrotclientlaunchersetup.exe` installiert nach **CarrotClientLauncherApp**. Die Anwendung startet als `carrotclientlauncher.exe`; eine portable EXE liegt ebenfalls bei. Das Update wird über das öffentliche GitHub-Repository angeboten. Herunterladen und Installieren bleiben getrennte Schritte. Bestehende Instanzen und Spielstände bleiben erhalten.
+carrotclientlaunchersetup.exe installiert weiterhin nach CarrotClientLauncherApp. Die Anwendung und die portable EXE heißen carrotclientlauncher.exe. Herunterladen und Installieren eines Launcher-Updates bleiben getrennte Schritte.
 
-Vanilla, Fabric, Forge, NeoForge und Quilt werden ab Minecraft 1.16 unterstützt, soweit der jeweilige Loader für die gewählte Version verfügbar ist. Eigene JAR- und ZIP-Dateien müssen zur Instanz passen. Ein vollständiger Live-Test mit einem lizenzierten Microsoft-Konto auf dem Ziel-PC bleibt vom automatisierten Test getrennt.
+Mods können bei laufendem Minecraft nicht geändert werden. Ressourcenpakete und Shader müssen im Spiel ausgewählt oder neu geladen werden; Shader benötigen einen passenden Shader-Loader. Falls Minecraft eine bereits verwendete ZIP-Datei unter Windows sperrt, das Paket zuerst im Spiel deaktivieren und neu laden. Vollständige Sicherungen und Wiederherstellungen werden bei beendetem Spiel ausgeführt.
+
+Tests verwenden getrennte Datenordner und kontrollierte Spielzustände. Ein echter Microsoft-Anmelde- und Spieltest mit einer Java-Lizenz auf dem Ziel-PC ist davon getrennt.

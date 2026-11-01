@@ -35,13 +35,17 @@ class Store {
   }
   instance(id) { const i = this.data.instances.find(i => i.id === id); if (!i) throw new Error('Diese Instanz wurde nicht gefunden.'); return i; }
   directory(id) { this.instance(id); return path.join(this.root, 'instances', id); }
-  async create({ name, version, loader, color, loaderVersion = '', description = '' }, { preparedDirectory } = {}) {
+  async create({ name, version, loader, color, loaderVersion = '', description = '', modpack = null }, { preparedDirectory } = {}) {
     if (typeof name !== 'string' || !name.trim() || name.trim().length > 40) throw new Error('Bitte gib einen Namen mit 1 bis 40 Zeichen ein.');
     if (typeof version !== 'string' || !/^[a-zA-Z0-9_.-]{1,80}$/.test(version)) throw new Error('Ungültige Minecraft-Version.');
     if (!loaderIds.includes(loader)) throw new Error('Unbekannter Modloader.');
     const i = { id: crypto.randomUUID(), name: name.trim(), version, loader, color: ['moss', 'clay', 'lake', 'plum'].includes(color) ? color : 'moss', createdAt: Date.now(), lastPlayed: null, playtime: 0, installed: false };
     i.loaderVersion = /^[\w.+-]{0,80}$/.test(loaderVersion) ? loaderVersion : '';
     i.description = String(description).slice(0,300); i.favorite = false;
+    if(modpack&&typeof modpack==='object'){
+      i.modpack={title:String(modpack.title||name).slice(0,100),versionName:String(modpack.versionName||'').slice(0,100)};
+      for(const field of ['projectId','versionId'])if(typeof modpack[field]==='string'&&/^[-\w]{1,100}$/.test(modpack[field]))i.modpack[field]=modpack[field];
+    }
     const directory=path.join(this.root,'instances',i.id);await fs.mkdir(path.dirname(directory),{recursive:true});
     if(preparedDirectory){const staged=path.resolve(preparedDirectory);if(!staged.startsWith(path.resolve(this.root)+path.sep))throw new Error('Ungültiges Importverzeichnis.');await fs.rename(staged,directory);}else await fs.mkdir(directory,{recursive:true});
     this.data.instances.push(i);await this.save();return i;

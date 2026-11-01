@@ -36,7 +36,7 @@ test('invalid or colliding imports leave every destination and source untouched'
 });
 test('running games and linked directories cannot be changed by content operations',async t=>{
  const {root,store,instance:i,content,engine}=await fixture(t),pack=await archive(root,'Pack.zip',{'pack.mcmeta':{}});
- engine.running.add(i.id);await assert.rejects(content.importFiles(i.id,'resourcepack',[pack]),/Beende zuerst/);engine.running.clear();
+ engine.running.add(i.id);await assert.rejects(content.importFiles(i.id,'mod',[pack]),/Beende zuerst/);engine.running.clear();
  const outside=path.join(root,'linked-source');await fs.mkdir(outside);await fs.copyFile(pack,path.join(outside,'Pack.zip'));await fs.symlink(outside,path.join(store.directory(i.id),'resourcepacks'),'junction');
  await assert.rejects(content.importFiles(i.id,'resourcepack',[pack]),/Verknüpfte/);await assert.rejects(content.changeContent(i.id,'resourcepacks','Pack.zip',true),/Verknüpfte/);assert.deepEqual(await fs.readFile(pack),await fs.readFile(path.join(outside,'Pack.zip')));
  const vanilla=await store.create({name:'Vanilla',version:'1.21.1',loader:'vanilla'});await assert.rejects(content.importFiles(vanilla.id,'mod',[pack]),/Modloader/);
