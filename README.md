@@ -1,6 +1,6 @@
 # CarrotClientLauncher
 
-Ein eigenständiger Minecraft-Java-Launcher für Windows 10/11 (64 Bit), mit deutscher Oberfläche, eigener Instanzbibliothek, Modrinth-Installation und Profilimport. Aktuelle Version: **0.0.5**.
+Ein eigenständiger Minecraft-Java-Launcher für Windows 10/11 (64 Bit), mit deutscher und englischer Oberfläche, eigener Instanzbibliothek, Modrinth-Installation und Profilimport. Aktuelle Version: **0.0.6**.
 
 ## Öffnen
 
@@ -9,6 +9,12 @@ Ein eigenständiger Minecraft-Java-Launcher für Windows 10/11 (64 Bit), mit deu
 Zusätzlich liegt `release/carrotclientlauncher.exe` als portable Variante bei. Bestehende Instanzen und Profile bleiben im bisherigen Datenordner erhalten.
 
 Auf der Startseite **Profil wählen** öffnen. Unter **Microsoft** die Anmeldung auf Microsofts Webseite abschließen oder unter **Cracked / Offline** einen Spielernamen wählen und **Offline-Profil verwenden** drücken. Anschließend **Neue Instanz** wählen, einen Namen, eine Minecraft-Version und Vanilla, Fabric, Forge, NeoForge oder Quilt auswählen. Mit dem Play-Button werden Minecraft und bei Bedarf die passende Java-Laufzeit geladen. Eine Internetverbindung ist dafür nötig. Heruntergeladene Spieldateien und Java werden zwischen Instanzen wiederverwendet.
+
+## Sprache und Darstellung
+
+Oben rechts lässt sich zwischen **Deutsch** und **English** wechseln. Die Änderung gilt sofort für Navigation, Dialoge, Hinweise, Update-Anzeigen und Discord-Aktivität und wird für den nächsten Start gespeichert. Dieselbe Auswahl steht unter **Einstellungen → Sprache & Oberfläche**. Instanznamen, Dateinamen und Inhalte von Modrinth-Autoren bleiben erhalten. Zahlen und Zeitangaben folgen der ausgewählten Sprache.
+
+Das Fenster passt beim Öffnen in den verfügbaren Bildschirmbereich. In kleineren Fenstern wird die Seitenleiste schmaler; die Navigation bleibt über Symbole mit Beschriftung beim Darüberfahren erreichbar. Dialoge besitzen einen eigenen scrollbaren Inhalt sowie feste Titel und Aktionsknöpfe.
 
 ## Enthalten
 
@@ -32,7 +38,7 @@ Auf der Startseite **Profil wählen** öffnen. Unter **Microsoft** die Anmeldung
 
 **Profile importieren** öffnet die Auswahl der Quell-Launcher. Ein gefundenes Profil auswählen und vor dem Kopieren Version, Loader und Einschränkungen prüfen. Für verschobene Installationen **Ordner auswählen** nutzen. Alternativ eine `.mrpack` auswählen oder ins Fenster ziehen. Die Quelle bleibt erhalten. Kopiert werden unterstützte Spieldaten, keine fremden Anmeldesitzungen oder Java-Startbefehle. Client-eigene Oberflächen und Cosmetics werden nicht konvertiert. Vanilla, Fabric, Forge, NeoForge und Quilt werden ab Minecraft 1.16 gestartet, soweit der jeweilige Loader die gewählte Spielversion unterstützt. Ältere Spielversionen werden abgewiesen.
 
-Ein Klick auf eine Instanz öffnet zuerst **Inhalte**. Dort stehen Mods, Ressourcenpakete und Shader in einer gemeinsamen Tabelle. Suche, Typ-/Statusfilter und Sortierung helfen bei größeren Sammlungen. **Dateien hinzufügen** übernimmt eigene JAR- oder ZIP-Dateien, ohne die Quelle oder vorhandene Dateien zu überschreiben. **Updates suchen** markiert kompatible Mod-Updates direkt an den Dateien. Entfernen fragt vorher nach; automatische Sicherungen richten sich nach der Einstellung im Launcher. Name, Bilder und Versions-/Loader-Wechsel stehen unter **Einstellungen**, Sicherungen unter **Backups**.
+Ein Klick auf eine Instanz öffnet zuerst **Inhalte**. Dort stehen Mods, Ressourcenpakete und Shader in einer gemeinsamen Tabelle. Suche, Typ-/Statusfilter und Sortierung helfen bei größeren Sammlungen. **Dateien hinzufügen** übernimmt eigene JAR- oder ZIP-Dateien, ohne die Quelle oder vorhandene Dateien zu überschreiben. **Updates suchen** markiert kompatible Mod-Updates direkt an den Dateien. Entfernen fragt vorher nach; automatische Sicherungen richten sich nach der Einstellung im Launcher. Name, Bilder und Versions-/Loader-Wechsel stehen unter **Einstellungen**, Sicherungen unter **Sicherungen**.
 
 **Inhalte entdecken** öffnet die Suche für genau diese Instanz. Minecraft-Version und Loader sowie die Zielinstanz sind festgelegt. Die kompatible Datei und erforderliche Abhängigkeiten werden beim Öffnen des Projekts automatisch geprüft. **Jetzt installieren** übernimmt sie direkt in dieses Profil. Ressourcenpakete und Shader können bei laufendem Minecraft hinzugefügt und anschließend im Spiel ausgewählt oder neu geladen werden. Sobald eine Installation Mods enthält, muss das Spiel dafür beendet werden. Automatische Inhaltsbackups sichern nur die betroffenen Inhaltsordner und ihre Projektzuordnungen.
 
@@ -94,7 +100,7 @@ In Discord muss das Teilen der Aktivität erlaubt sein; die Sichtbarkeit richtet
 
 `%APPDATA%\CarrotClientLauncher`
 
-Unter **Einstellungen → Deine Dateien → Ordner öffnen** erreichbar. Jede Instanz besitzt `saves`, `mods`, `resourcepacks`, `shaderpacks` und `launcher-game.log`. Fabric-Instanzen benötigen für viele Mods zusätzlich die zur Spielversion passende Fabric API. Mods werden in dieser Version manuell in `mods` abgelegt. Welten archivierter Instanzen bleiben im Unterordner `archive` erhalten.
+Unter **Einstellungen → Deine Dateien → Ordner öffnen** erreichbar. Jede Instanz besitzt `saves`, `mods`, `resourcepacks`, `shaderpacks` und `launcher-game.log`. Fabric-Instanzen benötigen für viele Mods zusätzlich die zur Spielversion passende Fabric API. Mods lassen sich über die Inhaltssuche, den Dateiimport oder den Instanzordner hinzufügen. Welten archivierter Instanzen bleiben im Unterordner `archive` erhalten.
 
 ## Entwicklung
 
@@ -114,6 +120,7 @@ node node_modules/electron/install.js
 ```powershell
 npm test                 # Anmeldung, Lizenzprüfung, Instanzen, Spielprozesse und Discord-IPC
 node scripts/smoke.cjs    # Native UI mit kontrollierten Anmeldeantworten, ohne echte Kontoanmeldung
+node scripts/localization-smoke.cjs # Deutsch/Englisch, kleine Fenster, Dialoge und Sprachspeicherung
 node scripts/portable-test.cjs # Die gebaute Windows-EXE prüfen
 npm run dist             # Setup, portable EXE und Update-Metadaten bauen
 node scripts/verify-release.cjs # Dateien und Prüfsummen des Releases prüfen

@@ -6,10 +6,11 @@ const loaderIds = require('./loader-definitions.json').map(loader=>loader.id);
 
 const defaults = {
   memory: Math.max(1024, Math.min(4096, Math.floor(os.totalmem() / 1024 / 1024 / 2 / 512) * 512)),
-  javaPath: '', width: 1280, height: 720, snapshots: false, minimizeOnLaunch: true, discordRichPresence: true, autoBackup: true
+  javaPath: '', width: 1280, height: 720, snapshots: false, minimizeOnLaunch: true, discordRichPresence: true, autoBackup: true, language: 'de'
 };
 function validateSettings(value) {
   const out = {};
+  if (['de', 'en'].includes(value.language)) out.language = value.language;
   if (Number.isInteger(value.memory) && value.memory >= 1024 && value.memory <= Math.min(32768, Math.floor(os.totalmem() / 1024 / 1024))) out.memory = value.memory;
   if (typeof value.javaPath === 'string' && value.javaPath.length < 1000) out.javaPath = value.javaPath;
   for (const key of ['width', 'height']) if (Number.isInteger(value[key]) && value[key] >= 480 && value[key] <= 7680) out[key] = value[key];

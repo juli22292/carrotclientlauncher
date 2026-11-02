@@ -1,0 +1,65 @@
+const {_electron:electron,expect}=require('@playwright/test');
+const fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os'),assert=require('node:assert/strict'),AdmZip=require('adm-zip');
+const {Store}=require('../electron/store.cjs');
+async function launch(root){return electron.launch({args:process.env.CARROT_TEST_EXE?[]:['.'],...(process.env.CARROT_TEST_EXE?{executablePath:process.env.CARROT_TEST_EXE}:{}),env:{...process.env,CARROT_DATA_DIR:root,CARROT_DISABLE_DISCORD:'1',CARROT_DISABLE_UPDATES:'1'},timeout:60000});}
+async function main(){
+ const root=await fs.mkdtemp(path.join(os.tmpdir(),'carrot-bilingual-ui-')),store=await new Store(root).init();
+ const instance=await store.create({name:'Startseite',version:'1.21.1',loader:'fabric',loaderVersion:'0.16.10'});
+ await store.create({name:'Ein sehr langer Instanzname mit Freunden',version:'1.21.1',loader:'vanilla'});
+ const game=store.directory(instance.id);await fs.mkdir(path.join(game,'mods'),{recursive:true});
+ const mod=new AdmZip();mod.addFile('fabric.mod.json',Buffer.from('{"id":"local","name":"Original Mod Name","version":"1.0"}'));mod.writeZip(path.join(game,'mods','original.jar'));
+ await fs.mkdir(path.join(game,'saves','World'),{recursive:true});await fs.writeFile(path.join(game,'saves','World','level.dat'),'preserved-world');
+ let app=await launch(root);const errors=[];
+ try{
+  await app.evaluate(()=>{
+   const original=global.fetch;globalThis.languageSearchFailure=false;
+   const project=id=>({id,project_id:id,slug:id,project_type:id==='fixturepack'?'modpack':id==='fixturetextures'?'resourcepack':'mod',title:id==='fixturepack'?'Original Pack Title':'Original Project Title',author:'Original Author',description:'Original project description.',display_categories:['fabric','optimization'],downloads:1234567});
+   const version=id=>({id:'v'+id,project_id:id,name:'Stable 1.0',version_number:'1.0',version_type:'release',game_versions:['1.21.1'],loaders:['fabric'],dependencies:[],files:[{primary:true,filename:id+(id==='fixturepack'?'.mrpack':'.jar'),url:'https://cdn.modrinth.com/fixture/'+id,hashes:{sha1:'a'.repeat(40)},size:100}]});
+   global.fetch=async(url,options)=>{const u=new URL(String(url));
+    if(u.pathname.includes('version_manifest_v2.json'))return new Response(JSON.stringify({latest:{release:'1.21.1'},versions:[{id:'1.21.1',type:'release',releaseTime:'2024-08-08'}]}));
+    if(u.hostname==='api.modrinth.com'&&u.pathname==='/v2/search'){if(globalThis.languageSearchFailure)throw new Error('Diese Download-Adresse ist nicht zugelassen.');const facet=u.searchParams.get('facets');return new Response(JSON.stringify({hits:[project(facet.includes('modpack')?'fixturepack':facet.includes('resourcepack')?'fixturetextures':'fixturemod')],total_hits:1}));}
+    if(u.hostname==='api.modrinth.com'&&u.pathname.startsWith('/v2/project/')){const id=u.pathname.split('/')[3];return new Response(JSON.stringify(u.pathname.endsWith('/version')?[version(id)]:project(id)));}
+    if(u.hostname==='api.modrinth.com'&&u.pathname.startsWith('/v2/version/'))return new Response(JSON.stringify(version(u.pathname.split('/')[3].slice(1))));
+    if(u.hostname.includes('fabricmc'))return new Response(JSON.stringify([{loader:{version:'0.16.10',stable:true}}]));
+    return original(url,options);
+   };
+  });
+  const page=await app.firstWindow();page.on('pageerror',e=>errors.push(e.message));await page.reload();await page.getByRole('heading',{name:'Schön, dass du da bist.'}).waitFor();
+  const dialogFits=async()=>{const m=await page.getByRole('dialog').evaluate(e=>{const r=e.getBoundingClientRect(),h=e.querySelector('header h2').getBoundingClientRect(),buttons=[...e.querySelectorAll('.modal-footer button')].filter(b=>b.offsetWidth).map(b=>b.getBoundingClientRect());return{top:r.top,bottom:r.bottom,titleTop:h.top,titleBottom:h.bottom,buttons:buttons.map(b=>({top:b.top,bottom:b.bottom})),height:innerHeight};});assert(m.top>=22&&m.bottom<=m.height-22);assert(m.titleTop>=m.top&&m.titleBottom<m.bottom);assert(m.buttons.every(b=>b.top>=m.top&&b.bottom<=m.bottom),'Dialog buttons are clipped');};
+  const noOverflow=async()=>{assert.equal(await page.locator('.page-content').evaluate(e=>e.scrollWidth>e.clientWidth+1),false,'Content has horizontal overflow');assert.equal(await page.locator('body').evaluate(e=>e.scrollWidth>innerWidth),false,'Window has horizontal overflow');};
+  const resize=async(w,h)=>{await app.evaluate(({BrowserWindow},size)=>{const win=BrowserWindow.getAllWindows()[0];win.setMinimumSize(720,540);win.setSize(...size);},[w,h]);await page.waitForTimeout(100);};
+  await page.getByLabel('Sprache auswählen',{exact:true}).selectOption('en');
+  await expect(page.getByRole('heading',{name:'Welcome back.'})).toBeVisible();await page.waitForFunction(async()=>(await window.carrot.getData()).settings.language==='en');
+  await expect(page.locator('.breadcrumb')).toContainText('Home');
+  await page.getByRole('button',{name:'Manage Startseite',exact:true}).click();await expect(page.getByRole('heading',{name:'Startseite.'})).toBeVisible();await expect(page.getByRole('table',{name:'Installed content'})).toBeVisible();await expect(page.getByText('Original Mod Name',{exact:true})).toBeVisible();
+  await page.getByRole('tab',{name:'Settings',exact:true}).click();await expect(page.getByLabel('Loader version',{exact:true})).toBeVisible();await expect(page.getByText('Lightweight and versatile.')).toBeVisible();
+  await page.getByRole('tab',{name:'Errors & logs',exact:true}).click();await expect(page.getByRole('heading',{name:'No game log yet'})).toBeVisible();
+  await page.getByRole('tab',{name:'Content',exact:true}).click();await page.getByRole('button',{name:'Discover content',exact:true}).click();
+  await expect(page.getByLabel('Active target instance')).toContainText('Startseite');await expect(page.getByRole('heading',{name:'Original Project Title'})).toBeVisible();assert.equal(await page.getByRole('tab',{name:'Modpacks',exact:true}).count(),0);
+  await page.getByRole('button',{name:'Show results as grid'}).click();await noOverflow();await page.getByRole('button',{name:'Show results as list'}).click();
+  for(const locale of ['de','en']){
+   await page.locator('.language-switch select').selectOption(locale);await expect(page.locator('html')).toHaveAttribute('lang',locale);
+   for(const [w,h]of [[1440,940],[1280,800],[1080,720],[900,650]]){
+    await resize(w,h);await noOverflow();
+    assert(await page.locator('.discovery-search input').evaluate(e=>e.clientWidth>=180&&parseFloat(getComputedStyle(e).fontSize)>=12));
+    const tabMetrics=await page.locator('.discover-tabs [role="tab"]').evaluateAll(nodes=>nodes.map(e=>({height:e.getBoundingClientRect().height,clipped:e.scrollWidth>e.clientWidth+2,right:e.getBoundingClientRect().right})));
+    assert(tabMetrics.every(m=>m.height>=38&&!m.clipped&&m.right<=w),'Discovery tabs clip text');
+    const gap=await page.evaluate(()=>document.querySelector('.discovery-search').getBoundingClientRect().top-document.querySelector('.discover-tabs').getBoundingClientRect().bottom);assert(gap>=16,'Tabs touch the search field');
+    if(h<=800){const result=await page.locator('.discover-result').first().boundingBox();assert(result.y+Math.min(result.height,120)<=h-31,'Search results are pushed below the visible area');}await page.screenshot({path:`test-results/interface-${locale}-${w}.png`});
+   }
+  }
+  await resize(1280,800);await page.getByRole('tab',{name:'Resource packs',exact:true}).click();await expect(page.getByRole('textbox',{name:'Search Modrinth'})).toHaveAttribute('placeholder','Search resource packs …');
+  await page.getByRole('tab',{name:'Mods',exact:true}).focus();await page.keyboard.press('End');await expect(page.getByRole('tab',{name:'Shaders',exact:true})).toHaveAttribute('aria-selected','true');await page.keyboard.press('Home');
+  await page.getByRole('heading',{name:'Original Project Title'}).click();const install=page.getByRole('dialog',{name:'Add content'});await expect(install.getByLabel('Fixed target instance')).toContainText('Startseite');assert.equal(await install.getByLabel('Target instance',{exact:true}).count(),0);await expect(install.getByRole('button',{name:'Install now'})).toBeEnabled();await install.getByRole('button',{name:'Cancel',exact:true}).click();
+  await app.evaluate(()=>globalThis.languageSearchFailure=true);await page.getByRole('textbox',{name:'Search Modrinth'}).fill('failure');await expect(page.getByRole('heading',{name:'Modrinth is currently unavailable'})).toBeVisible();await expect(page.locator('.content-empty p')).toContainText('This download address is not allowed.');await app.evaluate(()=>globalThis.languageSearchFailure=false);await page.getByRole('button',{name:'Try again',exact:true}).click();await page.getByRole('heading',{name:'Original Project Title'}).waitFor();
+  await page.locator('.sidebar nav').getByRole('button',{name:'Discover',exact:true}).click();await page.getByRole('tab',{name:'Modpacks',exact:true}).click();await page.getByRole('heading',{name:'Original Pack Title'}).click();const pack=page.getByRole('dialog',{name:'Create modpack'});await expect(pack.getByLabel('Modpack version',{exact:true})).toBeVisible();assert.equal(await pack.getByLabel('Target instance',{exact:true}).count(),0);await pack.getByRole('button',{name:'Cancel',exact:true}).click();
+  await page.locator('.sidebar-bottom').getByRole('button',{name:'Settings',exact:true}).click();await expect(page.getByRole('heading',{name:'Language & interface'})).toBeVisible();await expect(page.getByText('Your launcher is up to date.')).toHaveCount(0);await page.getByRole('button',{name:'Choose profile',exact:true}).click();const account=page.getByRole('dialog',{name:'Welcome to CarrotClient'});await account.getByRole('tab',{name:'Cracked / Offline'}).click();await expect(account.getByLabel('Offline player name')).toBeVisible();await resize(900,650);await account.getByRole('button',{name:'Use offline profile'}).scrollIntoViewIfNeeded();assert((await account.getByRole('button',{name:'Use offline profile'}).boundingBox()).y<650);await account.locator('.modal-body').evaluate(e=>{e.scrollTop=e.scrollHeight});await dialogFits();await page.screenshot({path:'test-results/interface-account-en.png'});await account.getByRole('button',{name:'Close',exact:true}).last().click();
+  await page.locator('.sidebar nav').getByRole('button',{name:'Home',exact:true}).click();await page.getByRole('button',{name:'New instance',exact:true}).click();const create=page.getByRole('dialog',{name:'Create new instance'});await expect(create.getByPlaceholder('For example: My Survival World')).toBeVisible();await create.getByRole('button',{name:'Create instance',exact:true}).scrollIntoViewIfNeeded();await create.locator('.modal-body').evaluate(e=>{e.scrollTop=e.scrollHeight});assert(await create.locator('.modal-body').evaluate(e=>e.scrollTop>0),'Dialog content cannot be scrolled');await expect(create.locator('.loader-grid>button').last()).toBeInViewport();await dialogFits();assert(await create.locator('.loader-grid').evaluate(e=>{const cols=getComputedStyle(e).gridTemplateColumns.split(' ').map(parseFloat);return[...e.children].every(b=>Math.abs(b.getBoundingClientRect().width-cols[0])<2)}),'Loader cards do not fill their grid columns');await page.screenshot({path:'test-results/interface-create-en.png'});await create.getByRole('button',{name:'Cancel',exact:true}).click();
+  await app.evaluate(({ipcMain})=>{ipcMain.removeHandler('carrot:scanImports');ipcMain.handle('carrot:scanImports',()=>({profiles:[],errors:['Modrinth: Die Profildatei ist zu groß.']}));});await page.getByRole('button',{name:'Import profiles',exact:true}).click();const imports=page.getByRole('dialog',{name:'Import profiles'});await expect(imports.getByText('Copy game profiles or import a Modrinth modpack.')).toBeVisible();await expect(imports.locator('.form-error')).toContainText('Modrinth: The profile file is too large.');await imports.getByRole('button',{name:'Close',exact:true}).last().click();
+  await page.locator('.sidebar-bottom').getByRole('button',{name:'Downloads',exact:true}).click();await expect(page.getByRole('heading',{name:'Your downloads.'})).toBeVisible();await noOverflow();
+  assert.equal(await fs.readFile(path.join(game,'saves','World','level.dat'),'utf8'),'preserved-world');assert.deepEqual(errors,[]);
+  await app.close();app=null;app=await launch(root);const restarted=await app.firstWindow();await restarted.getByRole('heading',{name:'Welcome back.'}).waitFor();assert.equal((await restarted.evaluate(()=>window.carrot.getData())).settings.language,'en');await expect(restarted.getByRole('button',{name:'Manage Startseite',exact:true})).toBeVisible();
+  console.log('PASS: saved DE/EN language, all app sections and dialogs, translated IPC errors, unchanged profile/project names, keyboard tabs, 900–1440px layouts, input sizing and restart persistence.');
+ }finally{if(app)await app.close();}
+}
+main().catch(error=>{console.error(error);process.exitCode=1;});

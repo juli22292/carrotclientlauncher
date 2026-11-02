@@ -10,4 +10,5 @@ import '@fontsource/space-grotesk/latin-700.css';
 import App from './App.jsx';
 import './style.css';
 import './workspace.css';
+import './interface.css';
 createRoot(document.getElementById('root')).render(<App />);

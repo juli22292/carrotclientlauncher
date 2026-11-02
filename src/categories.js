@@ -1,0 +1,5 @@
+import { t } from './i18n.js';
+const labels = {
+ adventure:'Abenteuer',cursed:'Kurioses',decoration:'Dekoration',economy:'Wirtschaft',equipment:'Ausrüstung',food:'Essen',gameMechanics:'Spielmechanik','game-mechanics':'Spielmechanik',library:'Bibliotheken',magic:'Magie',management:'Verwaltung',minigame:'Minispiele',mobs:'Kreaturen',optimization:'Optimierung',social:'Soziales',storage:'Lagerung',technology:'Technik',transportation:'Transport',utility:'Werkzeuge',worldgen:'Weltgenerierung',challenging:'Herausfordernd',combat:'Kampf',kitchenSink:'Allround','kitchen-sink':'Allround',lightweight:'Leichtgewichtig',multiplayer:'Mehrspieler',quests:'Quests',environment:'Umgebung',realistic:'Realistisch',fantasy:'Fantasy',simplistic:'Schlicht',themed:'Thematisch',cartoon:'Cartoon',gui:'Oberfläche',fonts:'Schriftarten',blocks:'Blöcke',entities:'Kreaturen',items:'Gegenstände',models:'Modelle',audio:'Audio',locale:'Sprachen',modded:'Mod-Unterstützung',tweaks:'Anpassungen',fabric:'Fabric',forge:'Forge',neoforge:'NeoForge',quilt:'Quilt',minecraft:'Vanilla'
+};
+export const categoryName = id => t(labels[id] || id.replaceAll('-', ' '));

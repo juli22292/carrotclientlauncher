@@ -2,6 +2,7 @@ const net = require('node:net');
 const path = require('node:path');
 const { randomUUID } = require('node:crypto');
 const { DISCORD_APPLICATION_ID, DISCORD_IMAGE_URL } = require('./config.cjs');
+const { translateMessage } = require('./localization.cjs');
 
 // Discord's documented local IPC protocol: 8-byte LE header followed by UTF-8 JSON.
 // https://discord.com/developers/docs/topics/rpc#rpc-over-ipc
@@ -25,10 +26,10 @@ class DiscordPresence {
     this.lastSent = null; this.lastSentAt = 0;
     this.update(null);
   }
-  update(instance) {
+  update(instance, language = 'de') {
     this.activity = {
       name: 'CarrotClientLauncher', type: 0,
-      details: instance ? `Spielt ${require('./loader-definitions.json').find(loader=>loader.id===instance.loader)?.name||instance.loader||'Vanilla'} ${instance.version}` : 'Aktiv im Hauptmenü',
+      details: translateMessage(instance ? `Spielt ${require('./loader-definitions.json').find(loader=>loader.id===instance.loader)?.name||instance.loader||'Vanilla'} ${instance.version}` : 'Aktiv im Hauptmenü', language),
       assets: { large_image: this.image, large_text: 'CarrotClientLauncher' }
     };
     this.flush();
@@ -131,7 +132,7 @@ class DiscordPresence {
 function syncPresence(presence, engine, store, disabled = false) {
   if (!presence || !engine || !store) return;
   const id = [...engine.running.keys()].at(-1);
-  presence.update(store.data.instances.find(instance => instance.id === id) || null);
+  presence.update(store.data.instances.find(instance => instance.id === id) || null, store.data.settings.language);
   presence.setEnabled(!disabled && store.data.settings.discordRichPresence);
 }
 module.exports = { DiscordPresence, syncPresence };
